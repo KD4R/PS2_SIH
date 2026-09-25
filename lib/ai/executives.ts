@@ -117,8 +117,41 @@ export const executivePersonas: ExecutivePersona[] = [
   },
 ];
 
+export const procurementPersonas: ExecutivePersona[] = [
+  {
+    id: "tech_expert",
+    name: "Dr. Arvind Rao",
+    role: "Technical Evaluator",
+    systemPrompt: "You evaluate technical feasibility, scalability, and integration with existing government systems.",
+  },
+  {
+    id: "finance_auditor",
+    name: "Sunita Deshmukh",
+    role: "Finance Auditor",
+    systemPrompt: "You ensure financial compliance with GFR 2017, evaluate cost-effectiveness, and budget estimates.",
+  },
+  {
+    id: "legal_compliance",
+    name: "Rajesh Sharma",
+    role: "Legal & Compliance",
+    systemPrompt: "You focus on data privacy (PDPB 2023), IP rights, and regulatory compliance for public deployment.",
+  },
+  {
+    id: "impact_assessor",
+    name: "Meera Reddy",
+    role: "Impact Assessor",
+    systemPrompt: "You evaluate the societal impact, citizen benefits, and alignment with the department's core outcome goals.",
+  },
+  {
+    id: "risk_officer",
+    name: "Vikram Singh",
+    role: "Risk & Security Officer",
+    systemPrompt: "You assess cybersecurity risks, vendor lock-in, and operational risks of deploying the pilot.",
+  }
+];
+
 export function getPersona(id: string): ExecutivePersona {
-  const persona = executivePersonas.find((p) => p.id === id);
+  const persona = [...executivePersonas, ...procurementPersonas].find((p) => p.id === id);
   if (!persona) throw new Error(`Unknown executive id: ${id}`);
   return persona;
 }

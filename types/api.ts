@@ -168,3 +168,43 @@ export interface HistoryListResponse {
     changeType: "Report" | "Pitch deck" | "PRD" | "Financials";
   }>;
 }
+
+// ---- Procurement & SIH 26136 ---------------------------------------------
+
+export interface CreateChallengeRequestSchema {
+  title: string;
+  domain: string;
+  description: string;
+  budgetInr?: number;
+  deadline?: string;
+}
+
+export interface CreateProposalRequestSchema {
+  proposalText: string;
+}
+
+export interface RejectProposalRequestSchema {
+  reason: string;
+}
+
+export interface ProposalDetailResponse {
+  id: string;
+  challengeId: string;
+  status: "submitted" | "evaluating" | "rejected" | "approved" | "pilot_completed";
+  proposalText: string;
+  createdAt: string;
+  startupId: string;
+  startupName: string;
+  challengeTitle: string;
+}
+
+export interface MilestoneDetail {
+  id: string;
+  title: string;
+  description: string;
+  paymentInr: number;
+  status: "pending" | "in_review" | "approved" | "rejected";
+  dueDate?: string;
+  evidenceText?: string;
+  evidenceUrl?: string;
+}
