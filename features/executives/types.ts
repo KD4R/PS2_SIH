@@ -4,7 +4,8 @@ import type { AvatarPresence } from "@/components/ui/avatar";
 export interface ExecutiveProfile {
   id: string;
   name: string;
-  role: ExecutiveRole;
+  role: ExecutiveRole | string;
+
   trait: string;
   quote: string;
   bio: string;

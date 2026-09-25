@@ -41,7 +41,7 @@ function optionalEnv(name: string): string | undefined {
  * Chosen for breadth of availability across Groq accounts rather than raw
  * capability — override with `GROQ_MODEL` to pin something else.
  */
-const DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile";
+const DEFAULT_GROQ_MODEL = "openai/gpt-oss-120b";
 
 /**
  * Debate turns are the bulk of a session's traffic — one call per executive
@@ -51,7 +51,7 @@ const DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile";
  * rate limits per model, moves that traffic off the same TPM bucket the
  * verdict and deliverables depend on.
  */
-const DEFAULT_GROQ_DEBATE_MODEL = "llama-3.1-8b-instant";
+const DEFAULT_GROQ_DEBATE_MODEL = "openai/gpt-oss-20b";
 
 export const serverEnv = {
   /** Groq API key powering every AI executive persona. Get one at https://console.groq.com/keys */

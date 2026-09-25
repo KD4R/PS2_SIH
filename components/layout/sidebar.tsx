@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Gavel, PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import { primaryNav, secondaryNav } from "@/constants/nav";
+import { secondaryNav } from "@/constants/nav";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,7 @@ export interface SidebarProps {
   collapsed?: boolean;
   onToggleCollapsed?: () => void;
   className?: string;
+  primaryNav?: any[];
 }
 
 /**
@@ -22,7 +23,7 @@ export interface SidebarProps {
  * live badge counts are passed in by whichever layout mounts this — the
  * component itself never fetches data.
  */
-export function Sidebar({ badgeCounts, collapsed = false, onToggleCollapsed, className }: SidebarProps) {
+export function Sidebar({ badgeCounts, collapsed = false, onToggleCollapsed, className, primaryNav = [] }: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -43,16 +44,16 @@ export function Sidebar({ badgeCounts, collapsed = false, onToggleCollapsed, cla
       <Separator />
 
       <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4">
-        {primaryNav.map((section) => (
+        {primaryNav.map((section: any) => (
           <div key={section.label} className="space-y-1">
             {!collapsed && (
               <p className="px-2 text-[0.7rem] font-medium uppercase tracking-[0.12em] text-muted-foreground">
                 {section.label}
               </p>
             )}
-            {section.items.map((item) => {
+            {section.items.map((item: any) => {
               const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
-              const badgeCount = item.badgeKey ? badgeCounts?.[item.badgeKey] : undefined;
+              const badgeCount = item.badgeKey ? badgeCounts?.[item.badgeKey as keyof typeof badgeCounts] : undefined;
               const Icon = item.icon;
               return (
                 <Link

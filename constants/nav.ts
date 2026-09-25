@@ -33,22 +33,21 @@ export interface NavSection {
  * architecture. Hrefs are declared now so `Sidebar`/`Navbar` can render
  * active states even before every route has a page behind it.
  */
-export const primaryNav: NavSection[] = [
+export const primaryNavFounder: NavSection[] = [
   {
-    label: "Overview",
+    label: "Pilot Procurement",
     items: [
       { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-      { label: "Boardroom", href: "/boardroom", icon: Gavel, badgeKey: "activeMeetings" },
-      { label: "New meeting", href: "/meeting/new", icon: Compass },
+      { label: "Marketplace", href: "/marketplace", icon: Compass },
+      { label: "My Proposals", href: "/my-proposals", icon: FileText, badgeKey: "activeMeetings" },
     ],
   },
   {
     label: "Intelligence",
     items: [
+      { label: "Boardroom", href: "/boardroom", icon: Gavel },
       { label: "Reports", href: "/reports", icon: FileBarChart, badgeKey: "pendingReports" },
       { label: "Market research", href: "/market-research", icon: LineChart },
-      { label: "Financials", href: "/financials", icon: FileText },
-      { label: "Startup health", href: "/startup-health", icon: HeartPulse },
     ],
   },
   {
@@ -56,11 +55,33 @@ export const primaryNav: NavSection[] = [
     items: [
       { label: "Executives", href: "/executives", icon: Users },
       { label: "Pitch deck", href: "/pitch-deck", icon: Presentation },
-      { label: "PRD generator", href: "/prd-generator", icon: ScrollText },
-      { label: "Kanban", href: "/kanban", icon: KanbanSquare },
-      { label: "History", href: "/history", icon: History },
     ],
   },
 ];
+
+export const primaryNavOfficer: NavSection[] = [
+  {
+    label: "Procurement Management",
+    items: [
+      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+      { label: "My Challenges", href: "/challenges", icon: Compass },
+      { label: "Proposals Pipeline", href: "/challenges/1/pipeline", icon: KanbanSquare },
+    ],
+  },
+  {
+    label: "Evaluation",
+    items: [
+      { label: "Boardroom", href: "/boardroom", icon: Gavel, badgeKey: "activeMeetings" },
+      { label: "Reports", href: "/reports", icon: FileBarChart, badgeKey: "pendingReports" },
+    ],
+  },
+  {
+    label: "System",
+    items: [
+      { label: "Evaluators", href: "/executives", icon: Users },
+    ],
+  },
+];
+
 
 export const secondaryNav: NavItem[] = [{ label: "Settings", href: "/settings", icon: Settings }];

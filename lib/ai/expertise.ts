@@ -84,7 +84,38 @@ export const executiveExpertise: Record<string, ExecutiveExpertise> = {
     goal: "Get past vanity metrics to the retention curve underneath the growth story.",
     aliases: ["retention", "product growth"],
   },
+  tech_expert: {
+    topics: { technical: 1.0, financial: 0.3, market: 0.3, growth: 0.3, legal: 0.3, strategy: 0.5 },
+    priority: 0.7,
+    goal: "Establish whether this can actually be built and shipped for a government environment.",
+    aliases: ["tech expert", "engineer", "meera"],
+  },
+  finance_auditor: {
+    topics: { technical: 0.2, financial: 1.0, market: 0.4, growth: 0.4, legal: 0.6, strategy: 0.5 },
+    priority: 0.8,
+    goal: "Ensure GFR 2017 compliance and value for money on the pilot budget.",
+    aliases: ["auditor", "finance officer", "ramesh"],
+  },
+  legal_compliance: {
+    topics: { technical: 0.4, financial: 0.4, market: 0.3, growth: 0.2, legal: 1.0, strategy: 0.6 },
+    priority: 0.6,
+    goal: "Surface regulatory, GeM, and data localisation compliance issues before approval.",
+    aliases: ["legal compliance", "advisor", "sunita"],
+  },
+  impact_assessor: {
+    topics: { technical: 0.5, financial: 0.4, market: 0.8, growth: 0.7, legal: 0.4, strategy: 0.8 },
+    priority: 0.75,
+    goal: "Determine the real-world utility and citizen benefit of rolling out this solution.",
+    aliases: ["impact assessor", "citizen rep", "vikram"],
+  },
+  risk_officer: {
+    topics: { technical: 0.7, financial: 0.5, market: 0.5, growth: 0.3, legal: 0.8, strategy: 0.9 },
+    priority: 0.85,
+    goal: "Identify vendor lock-in, continuity risks, and data security threats.",
+    aliases: ["risk officer", "security", "anjali"],
+  },
 };
+
 
 /** Neutral profile for an id with no declared expertise — never disqualified. */
 export const DEFAULT_EXPERTISE: ExecutiveExpertise = {
