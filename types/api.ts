@@ -171,31 +171,49 @@ export interface HistoryListResponse {
 
 // ---- Procurement & SIH 26136 ---------------------------------------------
 
-export interface CreateChallengeRequestSchema {
-  title: string;
-  domain: string;
-  description: string;
-  budgetInr?: number;
-  deadline?: string;
-}
+import { z } from "zod";
 
-export interface CreateProposalRequestSchema {
-  proposalText: string;
-}
+export const CreateChallengeRequestSchema = z.object({
+  title: z.string(),
+  domain: z.string(),
+  description: z.string(),
+  budgetInr: z.number().optional(),
+  deadline: z.string().optional(),
+});
 
-export interface RejectProposalRequestSchema {
-  reason: string;
-}
+export const CreateProposalRequestSchema = z.object({
+  proposalText: z.string(),
+});
+
+export const RejectProposalRequestSchema = z.object({
+  reason: z.string(),
+});
 
 export interface ProposalDetailResponse {
   id: string;
   challengeId: string;
-  status: "submitted" | "evaluating" | "rejected" | "approved" | "pilot_completed";
+  status: "submitted" | "evaluating" | "evaluated" | "approved" | "pilot_active" | "pilot_completed" | "rejected";
   proposalText: string;
   createdAt: string;
+  submittedAt: string;
   startupId: string;
   startupName: string;
   challengeTitle: string;
+  reportId?: string;
+  aiMatchScore?: number;
+}
+
+export interface ChallengeDetailResponse {
+  id: string;
+  departmentId: string;
+  title: string;
+  description: string;
+  domain: string;
+  budgetInr?: number;
+  deadline?: string;
+  eligibilityNotes?: string;
+  status: string;
+  createdAt: string;
 }
 
 export interface MilestoneDetail {
@@ -207,4 +225,12 @@ export interface MilestoneDetail {
   dueDate?: string;
   evidenceText?: string;
   evidenceUrl?: string;
+}
+
+export interface ProposalListResponse {
+  proposals: ProposalDetailResponse[];
+}
+
+export interface MilestoneListResponse {
+  milestones: MilestoneDetail[];
 }

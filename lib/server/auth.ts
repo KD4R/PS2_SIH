@@ -12,16 +12,17 @@ export async function requireUser() {
 import { cookies } from "next/headers";
 
 /** Route handlers use this to restrict access by role. */
-export async function requireRole(allowedRoles: string[]) {
+export async function requireRole(allowedRoles: string | string[]) {
   const { user, response } = await requireUser();
-  if (response) return { user, response };
+  if (response) return { user, role: "", response };
   
   const cookieStore = await cookies();
   const demoRole = cookieStore.get("demo_role")?.value;
   const role = demoRole || user?.user_metadata?.role || "startup_founder";
   
-  if (!allowedRoles.includes(role)) {
-    return { user, response: NextResponse.json({ error: "Forbidden", code: "FORBIDDEN" }, { status: 403 }) };
+  const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+  if (!roles.includes(role)) {
+    return { user, role, response: NextResponse.json({ error: "Forbidden", code: "FORBIDDEN" }, { status: 403 }) };
   }
-  return { user, response: null };
+  return { user, role, response: null };
 }

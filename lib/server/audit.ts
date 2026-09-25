@@ -1,10 +1,12 @@
 export async function writeAuditLog(
   userId: string,
-  action: string,
-  resourceId: string,
+  role: string,
   resourceType: string,
-  metadata?: any
+  resourceId: string,
+  action: string,
+  oldState?: any,
+  newState?: any
 ) {
   // In a real system, this would write to a secure append-only audit log table
-  console.log(`[AUDIT LOG] User ${userId} performed ${action} on ${resourceType} ${resourceId}`, metadata || "");
+  console.log(`[AUDIT LOG] User ${userId} (${role}) performed ${action} on ${resourceType} ${resourceId}`, { oldState, newState });
 }

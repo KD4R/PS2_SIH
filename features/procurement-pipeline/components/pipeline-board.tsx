@@ -20,7 +20,7 @@ export function PipelineBoard({ challengeId }: { challengeId: string }) {
   const load = () => {
     setLoading(true);
     fetchPipelineForChallenge(challengeId)
-      .then(data => setProposals(data.proposals || []))
+      .then((data: any) => setProposals(data.proposals || []))
       .catch(console.error)
       .finally(() => setLoading(false));
   };
@@ -35,7 +35,7 @@ export function PipelineBoard({ challengeId }: { challengeId: string }) {
 
   const handleApprove = async (milestones: any[]) => {
     if (!approving) return;
-    await approveProposal(approving, { milestones });
+    await approveProposal(approving, milestones);
     setApproving(null);
     load();
   };

@@ -10,3 +10,10 @@ export async function submitProposal(challengeId: string, data: { proposalText: 
   }
   return res.json();
 }
+
+export async function fetchOpenChallenges() {
+  const res = await fetch("/api/challenges");
+  if (!res.ok) throw new Error("Failed to load challenges");
+  const data = await res.json();
+  return data.challenges;
+}

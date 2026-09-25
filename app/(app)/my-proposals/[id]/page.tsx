@@ -72,7 +72,15 @@ export default function ProposalMilestonesPage({ params }: { params: { id: strin
         ) : proposal.status === "submitted" || proposal.status === "evaluating" ? (
           <p className="text-muted-foreground">Milestones will be available once the pilot is approved.</p>
         ) : (
-          <MilestoneTracker milestones={milestones} onUpdate={loadData} />
+          <MilestoneTracker 
+            milestones={milestones} 
+            role="startup_founder" 
+            onUploadEvidence={async (id, text) => {
+              await fetch(`/api/milestones/${id}/evidence`, { method: "POST", body: JSON.stringify({ text }) });
+              loadData();
+            }}
+            onReviewEvidence={() => {}}
+          />
         )}
       </div>
 

@@ -22,7 +22,7 @@ export function MilestoneTracker({
         <div key={m.id} className="border p-4 rounded-md bg-card">
           <div className="flex justify-between items-start mb-2">
             <h3 className="font-semibold">{m.title}</h3>
-            <Badge variant={m.status === "approved" ? "default" : "secondary"}>
+            <Badge className={m.status === "approved" ? "bg-green-500 hover:bg-green-600" : "bg-secondary text-secondary-foreground"}>
               {m.status.toUpperCase()}
             </Badge>
           </div>
