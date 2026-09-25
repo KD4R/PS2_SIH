@@ -8,3 +8,20 @@ export async function requireUser() {
   if (!user) return { user: null, response: NextResponse.json({ error: "Sign in is required.", code: "UNAUTHORIZED" }, { status: 401 }) };
   return { user, response: null };
 }
+
+import { cookies } from "next/headers";
+
+/** Route handlers use this to restrict access by role. */
+export async function requireRole(allowedRoles: string[]) {
+  const { user, response } = await requireUser();
+  if (response) return { user, response };
+  
+  const cookieStore = await cookies();
+  const demoRole = cookieStore.get("demo_role")?.value;
+  const role = demoRole || user?.user_metadata?.role || "startup_founder";
+  
+  if (!allowedRoles.includes(role)) {
+    return { user, response: NextResponse.json({ error: "Forbidden", code: "FORBIDDEN" }, { status: 403 }) };
+  }
+  return { user, response: null };
+}
