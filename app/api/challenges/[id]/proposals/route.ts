@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireRole, requireUser } from "@/lib/server/auth";
 import { submitProposal, getProposalsForChallenge } from "@/lib/server/procurement";
 import { CreateProposalRequestSchema } from "@/types/api";
+import { checkProposalSpam } from "@/lib/ai/spam-filter";
 import { translateToEnglish } from "@/lib/ai/bhashini";
 import { sanitizeInput } from "@/lib/server/xss-sanitize";
 

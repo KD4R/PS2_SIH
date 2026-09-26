@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/server/auth";
 import { createClient } from "@/lib/supabase/server";
-import { callGroqDirect } from "@/lib/ai/groq";
+import { generateText } from "@/lib/ai/groq";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   // OWASP: Broken Access Control - Enforce strict RBAC for contract generation
@@ -70,10 +70,11 @@ ${proposal.proposal_text.substring(0, 1000)}...
 
 Return ONLY the Markdown contract.`;
 
-    const generatedContract = await callGroqDirect([
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt }
-    ], 1500);
+    const generatedContract = await generateText({
+      systemPrompt,
+      turns: [{ role: "user", content: userPrompt }],
+      maxOutputTokens: 1500
+    });
 
     // 3. Save to DB
     const { error: updateError } = await supabase
