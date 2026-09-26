@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/server/auth";
 import { submitMilestoneEvidence } from "@/lib/server/procurement";
 import { createClient } from "@/lib/supabase/server";
+import { auditMilestoneEvidence } from "@/lib/ai/evidence-audit";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { user, response } = await requireRole("startup_founder");
@@ -17,11 +18,36 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
 
     const supabase = await createClient();
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${user!.id}/${id}-${Date.now()}.${fileExt}`;
     
+    // 1. Fetch milestone details for AI Context
+    const { data: milestone, error: msError } = await supabase
+      .from("procurement_milestones")
+      .select("title, description")
+      .eq("id", id)
+      .single();
+
+    if (msError || !milestone) {
+      throw new Error("Milestone not found");
+    }
+
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+    
+    // 2. AI Evidence Audit (Anti-Fraud)
+    // For the hackathon demo, we assume the file is text-based (txt, md, json) to read it easily.
+    const evidenceText = buffer.toString('utf-8');
+    const audit = await auditMilestoneEvidence(milestone.title, milestone.description, evidenceText);
+    
+    if (!audit.isAccepted) {
+      return NextResponse.json({ 
+        error: `AI Auditor Rejected Evidence: ${audit.reason}`,
+        code: "FRAUD_EVIDENCE_REJECTED"
+      }, { status: 400 });
+    }
+
+    // 3. Proceed with upload if AI accepts it
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${user!.id}/${id}-${Date.now()}.${fileExt}`;
 
     const { data: uploadData, error: uploadError } = await supabase
       .storage
