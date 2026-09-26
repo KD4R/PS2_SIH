@@ -44,4 +44,23 @@ We need to prove to the judges that we handle Risk Management when pilots fail.
 *   **WhatsApp:** Build a simple fixed `<div>` on the bottom right of the screen that looks like a phone. When a pilot is approved, make a CSS animation slide up a green WhatsApp bubble: *"Govt of Maharashtra: Your pilot is approved!"*
 
 ---
+
+## 🏆 THE "GOAT" FEATURES (Must Haves for the Win)
+
+### Task 6: The CAG/CVC Audit Trail Export
+*   **What to do:** On the Officer's Proposal Detail page, add a massive blue button: `[ 📄 Export CAG/CVC Compliance Report ]`.
+*   **The UI:** Clicking it calls `GET /api/proposals/[id]/audit-report`. Show a loading spinner saying "Cryptographically sealing audit trail...". Then display the JSON report in a clean modal (or use `jspdf` to download it). 
+*   **Why it wins:** Shows the judges you understand Bureaucratic fear of corruption probes.
+
+### Task 7: DPDP 2023 Data Sovereignty Scanner
+*   **What to do:** In the AI Verdict Modal (same place as the Fraud Risk banner), check for `dataSovereigntyRisk` returned by the backend.
+*   **The UI:** If it's `"CRITICAL"`, render a massive flag: **🚨 DPDP ACT VIOLATION: Foreign Data Routing Detected**. List the `dpdpViolations` below it.
+*   **Why it wins:** Data localization is the #1 tech priority of the Indian Government right now.
+
+### Task 8: The March 31st "Fund Lapse" Dashboard
+*   **What to do:** Create a new page/tab for the Finance Secretary (Analytics).
+*   **The UI:** Fetch `GET /api/analytics/budget-predictor`. Build a simple dashboard showing `totalPendingEscrowInr` and a giant red stat card for `fundsAtRiskOfLapseInr`.
+*   **Why it wins:** Eliminates the chaotic "March Rush" where government departments scramble to spend money before the financial year ends.
+
+---
 *Follow this PRD exactly, and the platform will look like a multi-million dollar, state-of-the-art Government system.*
