@@ -1,5 +1,6 @@
 import { auditMilestoneEvidence } from "../lib/ai/evidence-audit";
 import { evaluateDeepTechAuthenticity } from "../lib/ai/github-eval";
+import { scanDataSovereignty } from "../lib/ai/data-sovereignty";
 import { sanitizeInput } from "../lib/server/xss-sanitize";
 import { translateToEnglish } from "../lib/ai/bhashini";
 // We use assert from node for basic testing
@@ -69,6 +70,14 @@ async function runTests() {
     const enText = "This is pure english.";
     const enRes = await translateToEnglish(enText);
     check("Leaves English text alone (mostly)", !!enRes.translatedText);
+  } catch (e) {}
+  console.log("");
+
+  console.log("5. Data Sovereignty & DPDP 2023 Scanner");
+  try {
+    const badProp = "We will host all citizen records on our AWS us-east-1 server to save costs.";
+    const badRes = await scanDataSovereignty(badProp);
+    check("Flags foreign AWS servers as CRITICAL", badRes.riskLevel === "CRITICAL");
   } catch (e) {}
 
   console.log(`\nTESTS COMPLETED: ${passed} Passed, ${failed} Failed`);

@@ -1,6 +1,7 @@
 import { generateJson, type JsonSchema } from "@/lib/ai/groq";
 import { serverEnv } from "@/lib/server/env";
 import { evaluateDeepTechAuthenticity } from "@/lib/ai/github-eval";
+import { scanDataSovereignty } from "@/lib/ai/data-sovereignty";
 
 export const DIMENSIONS = [
   { key: "technicalFeasibility",    label: "Technical Feasibility",       description: "Is the solution technically mature enough for a government pilot? Does it work at scale?" },
@@ -84,6 +85,8 @@ export interface ProposalVerdict {
   recommendation: string;
   fraudRiskLevel: "LOW" | "MEDIUM" | "HIGH";
   deepTechAnalysis: string;
+  dataSovereigntyRisk: "SAFE" | "WARNING" | "CRITICAL";
+  dpdpViolations: string[];
 }
 
 function computeVerdict(scores: DimensionalScores): {
@@ -186,6 +189,9 @@ Score each dimension 0-20 with a one-sentence rationale. Then provide your overa
   // 2. Budget / Buzzword Fraud Check
   const budgetCheck = checkBudgetFraud(proposalText);
 
+  // 3. DPDP 2023 Data Sovereignty Check
+  const dataSovCheck = await scanDataSovereignty(proposalText);
+
   const { totalScore, verdict, autoRejected, autoRejectionReasons } = computeVerdict(raw.scores);
 
   let finalVerdict = verdict;
@@ -198,10 +204,10 @@ Score each dimension 0-20 with a one-sentence rationale. Then provide your overa
     finalRejectionReasons.push(`Deep Tech Fraud Risk: ${githubEval.analysis}`);
   }
 
-  if (budgetCheck.risk === "HIGH") {
+  if (dataSovCheck.riskLevel === "CRITICAL") {
     finalAutoRejected = true;
     finalVerdict = "AUTO_REJECTED";
-    finalRejectionReasons.push(`Budget/Claim Anomaly: ${budgetCheck.reason}`);
+    finalRejectionReasons.push(`DPDP Act Violation: Foreign servers or unauthorized data routing detected (${dataSovCheck.violationsFound.join(", ")}).`);
   }
 
   return {
@@ -212,5 +218,7 @@ Score each dimension 0-20 with a one-sentence rationale. Then provide your overa
     autoRejectionReasons: finalRejectionReasons,
     fraudRiskLevel: githubEval.fraudRiskLevel === "HIGH" || budgetCheck.risk === "HIGH" ? "HIGH" : githubEval.fraudRiskLevel,
     deepTechAnalysis: githubEval.analysis,
+    dataSovereigntyRisk: dataSovCheck.riskLevel,
+    dpdpViolations: dataSovCheck.violationsFound,
   };
 }
