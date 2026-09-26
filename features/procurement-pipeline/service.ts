@@ -18,7 +18,11 @@ export async function approveProposal(proposalId: string, milestones: any[]) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ milestones })
   });
-  if (!res.ok) throw new Error("Failed to approve");
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("API Error in approveProposal:", text);
+    throw new Error(`Failed to approve: ${text}`);
+  }
   return res.json();
 }
 
