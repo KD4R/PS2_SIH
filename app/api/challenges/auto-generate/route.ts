@@ -53,7 +53,7 @@ ${grievanceData}`;
   } catch (error: any) {
     console.error("[Auto-Generate Challenge Error]", error.message);
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors[0].message, code: "VALIDATION_ERROR" }, { status: 400 });
+      return NextResponse.json({ error: error.issues?.[0]?.message || "Validation failed", code: "VALIDATION_ERROR" }, { status: 400 });
     }
     // OWASP: Sensitive Data Exposure - mask internal errors
     return NextResponse.json({ error: "Failed to generate challenge from grievances." }, { status: 500 });

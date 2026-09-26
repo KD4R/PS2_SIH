@@ -52,7 +52,7 @@ export async function POST(req: Request) {
 
   } catch (error: any) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors[0].message, code: "VALIDATION_ERROR" }, { status: 400 });
+      return NextResponse.json({ error: error.issues?.[0]?.message || "Validation failed", code: "VALIDATION_ERROR" }, { status: 400 });
     }
     // OWASP: Sensitive Data Exposure - Don't leak raw stack traces
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

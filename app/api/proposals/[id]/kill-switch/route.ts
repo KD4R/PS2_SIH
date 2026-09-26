@@ -100,7 +100,7 @@ Reason for Termination: ${reason}`;
   } catch (error: any) {
     console.error("[Kill Switch Error]", error.message);
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors[0].message, code: "VALIDATION_ERROR" }, { status: 400 });
+      return NextResponse.json({ error: error.issues?.[0]?.message || "Validation failed", code: "VALIDATION_ERROR" }, { status: 400 });
     }
     // OWASP: Sensitive Data Exposure
     return NextResponse.json({ error: "Failed to execute Kill Switch protocol." }, { status: 500 });

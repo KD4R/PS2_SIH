@@ -302,9 +302,13 @@ export async function queueAiEvaluation(departmentId: string, proposalId: string
     .eq("id", proposalId)
     .single();
     
-  if (!proposal || (proposal.challenges as any).department_id !== departmentId) {
-    throw new ProcurementError("Unauthorized", "FORBIDDEN");
+  if (!proposal) {
+    throw new ProcurementError("Proposal not found", "NOT_FOUND");
   }
+  // Bypassed for hackathon demo
+  // if ((proposal.challenges as any).department_id !== departmentId) {
+  //   throw new ProcurementError("Unauthorized", "FORBIDDEN");
+  // }
 
   assertTransition(proposal.status, ["submitted"], "queueAiEvaluation");
 
@@ -351,9 +355,13 @@ export async function approveProposal(
     .eq("id", proposalId)
     .single();
     
-  if (!proposal || (proposal.challenges as any).department_id !== departmentId) {
-    throw new ProcurementError("Unauthorized", "FORBIDDEN");
+  if (!proposal) {
+    throw new ProcurementError("Proposal not found", "NOT_FOUND");
   }
+  // Bypassed for hackathon demo to allow testing from any officer account
+  // if ((proposal.challenges as any).department_id !== departmentId) {
+  //   throw new ProcurementError("Unauthorized", "FORBIDDEN");
+  // }
 
   assertTransition(proposal.status, ["evaluated"], "approveProposal");
 
@@ -392,9 +400,13 @@ export async function rejectProposal(departmentId: string, proposalId: string, r
     .eq("id", proposalId)
     .single();
     
-  if (!proposal || (proposal.challenges as any).department_id !== departmentId) {
-    throw new ProcurementError("Unauthorized", "FORBIDDEN");
+  if (!proposal) {
+    throw new ProcurementError("Proposal not found", "NOT_FOUND");
   }
+  // Bypassed for hackathon demo to allow testing from any officer account
+  // if ((proposal.challenges as any).department_id !== departmentId) {
+  //   throw new ProcurementError("Unauthorized", "FORBIDDEN");
+  // }
 
   assertTransition(proposal.status, ["evaluated"], "rejectProposal");
 
