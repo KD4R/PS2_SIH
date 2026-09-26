@@ -21,7 +21,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     
     // 1. Fetch milestone details for AI Context
     const { data: milestone, error: msError } = await supabase
-      .from("procurement_milestones")
+      .from("milestones")
       .select("title, description")
       .eq("id", id)
       .single();
