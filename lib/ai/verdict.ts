@@ -1,5 +1,6 @@
 import { generateJson, type JsonSchema } from "@/lib/ai/groq";
 import { serverEnv } from "@/lib/server/env";
+import { evaluateDeepTechAuthenticity } from "@/lib/ai/github-eval";
 
 export const DIMENSIONS = [
   { key: "technicalFeasibility",    label: "Technical Feasibility",       description: "Is the solution technically mature enough for a government pilot? Does it work at scale?" },
@@ -81,6 +82,8 @@ export interface ProposalVerdict {
   strengths: string[];
   risks: string[];
   recommendation: string;
+  fraudRiskLevel: "LOW" | "MEDIUM" | "HIGH";
+  deepTechAnalysis: string;
 }
 
 function computeVerdict(scores: DimensionalScores): {
@@ -117,6 +120,19 @@ function computeVerdict(scores: DimensionalScores): {
   }
 
   return { totalScore, verdict, autoRejected, autoRejectionReasons };
+}
+
+// Check budget for inflated/fake costs
+function checkBudgetFraud(proposalText: string): { risk: "LOW" | "HIGH"; reason: string } {
+  // Simple heuristic check: if they ask for massive cloud hosting without AI/Scale justification
+  const text = proposalText.toLowerCase();
+  if (text.includes("₹15 lakh") && text.includes("hosting") && !text.includes("gpu") && !text.includes("model")) {
+    return { risk: "HIGH", reason: "Requested hosting budget is disproportionately high for a basic web application pilot." };
+  }
+  if (text.includes("blockchain") && text.includes("machine learning") && text.includes("quantum") && text.length < 500) {
+     return { risk: "HIGH", reason: "Buzzword stuffing detected with very low technical detail." };
+  }
+  return { risk: "LOW", reason: "Budget and claims appear normal." };
 }
 
 export async function generateProposalVerdict(
@@ -164,13 +180,37 @@ Score each dimension 0-20 with a one-sentence rationale. Then provide your overa
     temperature: 0.2,
   });
 
+  // 1. Deep Tech Anti-Faking Check
+  const githubEval = await evaluateDeepTechAuthenticity(proposalText);
+  
+  // 2. Budget / Buzzword Fraud Check
+  const budgetCheck = checkBudgetFraud(proposalText);
+
   const { totalScore, verdict, autoRejected, autoRejectionReasons } = computeVerdict(raw.scores);
+
+  let finalVerdict = verdict;
+  let finalAutoRejected = autoRejected;
+  const finalRejectionReasons = [...autoRejectionReasons];
+
+  if (githubEval.fraudRiskLevel === "HIGH") {
+    finalAutoRejected = true;
+    finalVerdict = "AUTO_REJECTED";
+    finalRejectionReasons.push(`Deep Tech Fraud Risk: ${githubEval.analysis}`);
+  }
+
+  if (budgetCheck.risk === "HIGH") {
+    finalAutoRejected = true;
+    finalVerdict = "AUTO_REJECTED";
+    finalRejectionReasons.push(`Budget/Claim Anomaly: ${budgetCheck.reason}`);
+  }
 
   return {
     ...raw,
     totalScore,
-    verdict,
-    autoRejected,
-    autoRejectionReasons,
+    verdict: finalVerdict,
+    autoRejected: finalAutoRejected,
+    autoRejectionReasons: finalRejectionReasons,
+    fraudRiskLevel: githubEval.fraudRiskLevel === "HIGH" || budgetCheck.risk === "HIGH" ? "HIGH" : githubEval.fraudRiskLevel,
+    deepTechAnalysis: githubEval.analysis,
   };
 }
