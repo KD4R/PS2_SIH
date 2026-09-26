@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/server/auth";
-import { callGroqDirect } from "@/lib/ai/groq";
+import { generateText } from "@/lib/ai/groq";
 import { z } from "zod";
 
 const AutoGenerateRequestSchema = z.object({
@@ -36,10 +36,14 @@ You MUST respond in strict JSON matching this schema:
     const userPrompt = `Generate a Startup Challenge based on this recent grievance data report:
 ${grievanceData}`;
 
-    const rawResponse = await callGroqDirect([
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt }
-    ], 1000);
+    const rawResponse = await generateText({
+      turns: [
+        { role: "assistant", content: systemPrompt }, // using assistant for system if system isn't accepted, wait generateText accepts systemPrompt
+        { role: "user", content: userPrompt }
+      ],
+      systemPrompt,
+      maxOutputTokens: 1000
+    });
 
     const cleaned = rawResponse.replace(/```json/g, '').replace(/```/g, '').trim();
     const challengeData = JSON.parse(cleaned);

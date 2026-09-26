@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/server/auth";
 import { createClient } from "@/lib/supabase/server";
-import { callGroqDirect } from "@/lib/ai/groq";
+import { generateText } from "@/lib/ai/groq";
 import { z } from "zod";
 
 const KillSwitchRequestSchema = z.object({
@@ -65,10 +65,11 @@ Startup: ${startupName}
 Project: ${challengeTitle}
 Reason for Termination: ${reason}`;
 
-    const terminationNotice = await callGroqDirect([
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt }
-    ], 1000);
+    const terminationNotice = await generateText({
+      systemPrompt,
+      turns: [{ role: "user", content: userPrompt }],
+      maxOutputTokens: 1000
+    });
 
     // 3. Update DB (Halt Pilot, Update Contract Text)
     // We set status to rejected so it moves out of active pipeline. 

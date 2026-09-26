@@ -1,4 +1,4 @@
-import { callGroqDirect } from "@/lib/ai/groq";
+import { generateText } from "@/lib/ai/groq";
 
 /**
  * AI Github Codebase Evaluator (Anti-Faking Check)
@@ -61,7 +61,10 @@ Respond in strict JSON:
 }`;
 
   try {
-    const rawResponse = await callGroqDirect([{ role: "user", content: prompt }], 800);
+    const rawResponse = await generateText({
+      turns: [{ role: "user", content: prompt }],
+      maxOutputTokens: 800
+    });
     const cleaned = rawResponse.replace(/```json/g, '').replace(/```/g, '').trim();
     const result = JSON.parse(cleaned);
     

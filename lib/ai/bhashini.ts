@@ -1,4 +1,4 @@
-import { callGroqDirect } from "@/lib/ai/groq";
+import { generateText } from "@/lib/ai/groq";
 
 /**
  * Mock Bhashini Translation API
@@ -20,7 +20,10 @@ Text to process:
 ${text}`;
 
   try {
-    const rawResponse = await callGroqDirect([{ role: "user", content: prompt }], 1000);
+    const rawResponse = await generateText({
+      turns: [{ role: "user", content: prompt }],
+      maxOutputTokens: 1000
+    });
     
     // Clean up the response in case the model added markdown blocks
     const cleaned = rawResponse.replace(/```json/g, '').replace(/```/g, '').trim();
