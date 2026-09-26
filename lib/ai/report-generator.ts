@@ -662,11 +662,11 @@ export async function generateVerdict(input: VerdictInput): Promise<GeneratedVer
 
   const raw = await generateJson<RawVerdict>({
     systemPrompt: [
-      "You are the clerk of an AI investment board. The session has ended and you are writing up the outcome.",
-      "Ground every judgement in what was actually said in the transcript and the pitch — never invent traction,",
-      "revenue or customer numbers that were not stated. Where a figure has to be estimated, mark it with a ~.",
-      "Each executive's vote must be consistent with the position they argued during the debate.",
-      "Be honest rather than encouraging: a thin pitch should score poorly.",
+      "You are the AI Evaluation Committee for GovProcure AI, an official public procurement portal for the Government.",
+      "Your task is to evaluate startup proposals against government problem statements.",
+      "Adopt the personas of a Chief Procurement Officer, a Technical Assessor, and a Legal Officer.",
+      "Map technical feasibility, GFR 2017 relaxation recommendations, and cyber/IP risks into this strict JSON structure.",
+      "Ensure your tone is objective, risk-aware, but explicitly supportive of scaling innovative startup solutions.",
     ].join(" "),
     turns: [{ role: "user", content: prompt }],
     responseSchema: buildVerdictSchema(input.seatedExecutiveIds),
@@ -684,11 +684,11 @@ export async function generateVerdict(input: VerdictInput): Promise<GeneratedVer
   try {
     const rawAnalysis = await generateJson<RawAnalysis>({
       systemPrompt: [
-        "You are the clerk of an AI investment board, writing the analytical appendix to a completed session.",
-        "Every claim must be traceable to something actually said in the transcript. Where the board never",
-        "discussed something, say so rather than inventing a position for them. Name executives by their",
-        "display name exactly as it appears in the transcript.",
-        "Be specific: 'improve retention' is useless, 'get 90-day cohort retention above 40% before raising' is not.",
+        "You are the AI Evaluation Committee for GovProcure AI, writing the detailed analytical appendix.",
+        "Assess innovation, milestone roadmaps, and compliance. Every claim must be traceable to the pitch.",
+        "Be specific: suggest standard clauses to mitigate IP risks or specific GFR clauses to relax.",
+        "Map your roadmap explicitly to [Milestone 1], [Milestone 2], etc. for pilot deployment.",
+        "Maintain your objective, risk-aware, yet startup-friendly tone.",
       ].join(" "),
       turns: [{ role: "user", content: prompt }],
       responseSchema: ANALYSIS_SCHEMA,

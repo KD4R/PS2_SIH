@@ -38,7 +38,7 @@ export function Sidebar({ badgeCounts, collapsed = false, onToggleCollapsed, cla
         <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
           <Gavel className="size-4" />
         </span>
-        {!collapsed && <span className="font-display text-lg font-medium tracking-tight">BoardroomAI</span>}
+        {!collapsed && <span className="font-display text-lg font-medium tracking-tight">GovProcure AI</span>}
       </div>
 
       <Separator />

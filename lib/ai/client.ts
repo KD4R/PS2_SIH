@@ -80,9 +80,9 @@ function toChatTurns(conversation: ExecutiveReplyInput["conversation"]) {
  * point, and output tokens are the scarce half of Groq's per-minute budget.
  */
 const PHASE_TOKEN_BUDGET: Record<DebatePhase, number> = {
-  opening: 180,
-  cross_examination: 260,
-  closing: 200,
+  opening: 350,
+  cross_examination: 500,
+  closing: 380,
 };
 
 export async function generateExecutiveReply(input: ExecutiveReplyInput): Promise<string> {

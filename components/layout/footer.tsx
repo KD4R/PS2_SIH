@@ -36,7 +36,7 @@ export function Footer() {
             <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Gavel className="size-4" />
             </span>
-            <span className="font-display text-lg font-medium tracking-tight">BoardroomAI</span>
+            <span className="font-display text-lg font-medium tracking-tight">GovProcure AI</span>
           </Link>
           <p className="mt-4 max-w-xs text-sm text-muted-foreground">
             A virtual board of AI executives that pressure-tests your startup before a real one does.
@@ -61,7 +61,7 @@ export function Footer() {
 
       <div className="border-t border-border">
         <div className="container flex flex-col-reverse items-center justify-between gap-3 py-6 sm:flex-row">
-          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} BoardroomAI. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} GovProcure AI. All rights reserved.</p>
           <p className="text-xs text-muted-foreground">Every executive on this board is an AI persona, not a real person.</p>
         </div>
       </div>

@@ -177,6 +177,7 @@ export const CreateChallengeRequestSchema = z.object({
   title: z.string(),
   domain: z.string(),
   description: z.string(),
+  outcome: z.string(),
   budgetInr: z.number().optional(),
   deadline: z.string().optional(),
 });
@@ -209,10 +210,15 @@ export interface ChallengeDetailResponse {
   title: string;
   description: string;
   domain: string;
+  outcome?: string;
   budgetInr?: number;
   deadline?: string;
   eligibilityNotes?: string;
   status: string;
+  aiCopilotOutput?: any;
+  district?: string;
+  sector?: string;
+  pilotDurationDays?: number;
   createdAt: string;
 }
 
@@ -221,9 +227,8 @@ export interface MilestoneDetail {
   title: string;
   description: string;
   paymentInr: number;
-  status: "pending" | "in_review" | "approved" | "rejected";
+  status: "pending" | "evidence_submitted" | "completed" | "rejected";
   dueDate?: string;
-  evidenceText?: string;
   evidenceUrl?: string;
 }
 
@@ -234,3 +239,78 @@ export interface ProposalListResponse {
 export interface MilestoneListResponse {
   milestones: MilestoneDetail[];
 }
+
+export const ApproveProposalRequestSchema = z.object({
+  milestones: z.array(z.object({
+    title: z.string(),
+    description: z.string(),
+    paymentInr: z.number().optional(),
+    dueDate: z.string().optional()
+  }))
+});
+
+export const DefineKpisRequestSchema = z.object({
+  kpis: z.array(z.object({
+    name: z.string(),
+    description: z.string(),
+    unit: z.string(),
+    direction: z.enum(["higher_is_better", "lower_is_better"]),
+    baselineValue: z.number(),
+    targetValue: z.number(),
+    source: z.enum(["ai_suggested", "officer_defined"]).default("officer_defined")
+  }))
+});
+
+export const UploadEvidenceRequestSchema = z.object({
+  milestoneId: z.string().optional(),
+  title: z.string(),
+  description: z.string().optional(),
+  evidenceType: z.enum(['report','database_record','api_log','photo','video','user_feedback','financial_record','performance_report','test_result','other']),
+  filePath: z.string().optional(),
+  externalUrl: z.string().optional()
+});
+
+export const RecordObservationRequestSchema = z.object({
+  observedValue: z.number(),
+  evidenceId: z.string().optional(),
+  notes: z.string().optional()
+});
+
+export const RecordValidationRequestSchema = z.object({
+  status: z.enum(['verified','partially_verified','not_verified','insufficient_evidence']),
+  validatedValue: z.number().optional(),
+  notes: z.string(),
+  evidenceId: z.string().optional()
+});
+
+export const RecordDecisionRequestSchema = z.object({
+  decision: z.enum(['stop', 'extend_pilot', 'improve', 'scale', 'procure', 'replicate']),
+  notes: z.string(),
+  districts: z.array(z.string())
+});
+
+export const UpdateChallengeRequestSchema = z.object({
+  status: z.enum(['draft', 'open', 'closed', 'evaluating']).optional(),
+  aiCopilotApproved: z.boolean().optional(),
+  title: z.string().optional(),
+  description: z.string().optional(),
+  outcome: z.string().optional(),
+  domain: z.string().optional(),
+  budgetInr: z.number().optional(),
+  district: z.string().optional(),
+  sector: z.string().optional(),
+  pilotDurationDays: z.number().optional()
+});
+
+export const CopilotRequestSchema = z.object({
+  problemText: z.string()
+});
+
+export const StartupProfileUpdateSchema = z.object({
+  startupName: z.string().optional(),
+  gstin: z.string().optional(),
+  dpiitNumber: z.string().optional(),
+  domainTags: z.array(z.string()).optional(),
+  techStack: z.array(z.string()).optional(),
+  district: z.string().optional()
+});

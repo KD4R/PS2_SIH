@@ -25,21 +25,6 @@ export function AppShell({ children, user, role }: { children: ReactNode; user: 
 
   const primaryNav = role === "department_officer" ? primaryNavOfficer : primaryNavFounder;
 
-  const toggleRole = () => {
-    const nextRole = role === "department_officer" ? "startup_founder" : "department_officer";
-    document.cookie = `demo_role=${nextRole}; path=/`;
-    window.location.reload();
-  };
-
-  const RoleSwitcher = (
-    <button 
-      onClick={toggleRole} 
-      className="mr-4 px-3 py-1.5 text-xs font-semibold rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
-    >
-      Viewing as: {role === "department_officer" ? "Gov Officer" : "Startup"} (Click to Switch)
-    </button>
-  );
-
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar
@@ -49,7 +34,7 @@ export function AppShell({ children, user, role }: { children: ReactNode; user: 
         primaryNav={primaryNav}
       />
       <div className="flex min-w-0 flex-1 flex-col">
-        <Navbar title={titleForPath(pathname ?? "")} user={user} notificationCount={3} actions={RoleSwitcher} />
+        <Navbar title={titleForPath(pathname ?? "")} user={user} notificationCount={3} />
         <main className="flex-1 overflow-y-auto">
           <div className="container max-w-none py-8">{children}</div>
         </main>

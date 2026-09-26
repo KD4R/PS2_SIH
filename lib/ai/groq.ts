@@ -209,16 +209,12 @@ async function post(body: Record<string, unknown>, signal?: AbortSignal) {
   }
 }
 
-function readText(payload: ChatCompletion | null, model: string) {
+function readText(payload: ChatCompletion | null, model: string): string | null {
   const choice = payload?.choices?.[0];
   const text = (choice?.message?.content ?? "").trim();
-
-  if (!text) {
-    throw new GroqError(
-      `Groq returned no content from "${model}"${choice?.finish_reason ? ` (finish_reason: ${choice.finish_reason})` : ""}.`,
-    );
-  }
-
+  // If the finish_reason is "length" but we still have partial text, return it.
+  // Returning null signals the caller to retry with the larger model.
+  if (!text) return null;
   return text;
 }
 
@@ -231,11 +227,12 @@ function failure(status: number, payload: ChatCompletion | null, model: string) 
 
 async function generate(options: GenerateOptions): Promise<string> {
   const model = options.model ?? serverEnv.groqModel;
+  const fallbackModel = serverEnv.groqModel; // always fall back to the big model
 
   const base = {
     model,
     temperature: options.temperature ?? 0.8,
-    max_completion_tokens: options.maxOutputTokens ?? 512,
+    max_tokens: options.maxOutputTokens ?? 512,
   };
 
   if (!options.responseSchema) {
@@ -244,7 +241,20 @@ async function generate(options: GenerateOptions): Promise<string> {
       options.signal,
     );
     if (!response.ok) throw failure(response.status, payload, model);
-    return readText(payload, model);
+    const text = readText(payload, model);
+    if (text) return text;
+
+    // finish_reason:length with empty content — retry once with the big model
+    if (model !== fallbackModel) {
+      const retry = await post(
+        { ...base, model: fallbackModel, messages: messagesFor(options) },
+        options.signal,
+      );
+      if (!retry.response.ok) throw failure(retry.response.status, retry.payload, fallbackModel);
+      const retryText = readText(retry.payload, fallbackModel);
+      if (retryText) return retryText;
+    }
+    throw new GroqError(`Groq returned no content from "${model}" (finish_reason: length).`);
   }
 
   const strict = toStrictSchema(options.responseSchema);
@@ -263,7 +273,10 @@ async function generate(options: GenerateOptions): Promise<string> {
     options.signal,
   );
 
-  if (schemaAttempt.response.ok) return readText(schemaAttempt.payload, model);
+  if (schemaAttempt.response.ok) {
+    const t = readText(schemaAttempt.payload, model);
+    if (t) return t;
+  }
 
   // Only a handful of Groq models accept `json_schema`. The rest reject it
   // with a 400, so fall back to plain JSON mode and put the schema in the
@@ -293,7 +306,9 @@ async function generate(options: GenerateOptions): Promise<string> {
     throw failure(jsonModeAttempt.response.status, jsonModeAttempt.payload, model);
   }
 
-  return readText(jsonModeAttempt.payload, model);
+  const jsonText = readText(jsonModeAttempt.payload, model);
+  if (!jsonText) throw new GroqError(`Groq returned no content from "${model}" (finish_reason: length).`);
+  return jsonText;
 }
 
 /** Prose completion — used for an executive's spoken turn in a debate. */

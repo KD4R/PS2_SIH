@@ -3,6 +3,8 @@ import { requireRole } from "@/lib/server/auth";
 import { createChallenge, getOpenChallenges } from "@/lib/server/procurement";
 import { CreateChallengeRequestSchema } from "@/types/api";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const challenges = await getOpenChallenges();

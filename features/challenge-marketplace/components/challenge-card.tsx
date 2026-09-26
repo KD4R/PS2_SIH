@@ -26,9 +26,12 @@ export function ChallengeCard({ challenge, onApply }: { challenge: ChallengeCard
           </p>
         )}
       </CardContent>
-      <CardFooter>
-        <Button className="w-full" onClick={onApply} disabled={challenge.status !== "open"}>
-          {challenge.status === "open" ? "Apply for Pilot" : "Closed"}
+      <CardFooter className="gap-2">
+        {challenge.status === "open" && onApply && (
+          <Button className="flex-1" onClick={onApply}>Apply for Pilot</Button>
+        )}
+        <Button variant="outline" className="flex-1" onClick={() => window.location.href = `/challenges/${challenge.id}/pipeline`}>
+          View Pipeline
         </Button>
       </CardFooter>
     </Card>

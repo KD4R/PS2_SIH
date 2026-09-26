@@ -65,7 +65,6 @@ export const primaryNavOfficer: NavSection[] = [
     items: [
       { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
       { label: "My Challenges", href: "/challenges", icon: Compass },
-      { label: "Proposals Pipeline", href: "/challenges/1/pipeline", icon: KanbanSquare },
     ],
   },
   {

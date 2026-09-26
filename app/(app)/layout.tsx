@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 
+import { getUserRole } from "@/lib/server/auth";
+
 export const dynamic = "force-dynamic";
 
 export default async function AppGroupLayout({ children }: { children: React.ReactNode }) {
@@ -10,7 +12,7 @@ export default async function AppGroupLayout({ children }: { children: React.Rea
   if (!user) redirect("/login");
   const cookieStore = await cookies();
   const demoRole = cookieStore.get("demo_role")?.value;
-  const role = demoRole || user.user_metadata.role || "startup_founder";
+  const role = demoRole || await getUserRole(user.id);
 
   return (
     <AppShell 

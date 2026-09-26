@@ -11,7 +11,7 @@ import { Faq } from "@/features/landing/components/faq";
 import { CtaBanner } from "@/features/landing/components/cta-banner";
 
 export const metadata: Metadata = {
-  title: "BoardroomAI — Pitch to a virtual board of AI executives",
+  title: "GovProcure AI — Public Procurement Mechanism",
   description:
     "Eight AI executives debate your startup live, then hand you the investment decision, financials, and roadmap a real board takes weeks to produce.",
 };

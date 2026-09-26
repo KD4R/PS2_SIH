@@ -28,7 +28,7 @@ export function MarketingNavbar({ className }: { className?: string }) {
           <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Gavel className="size-4" />
           </span>
-          <span className="font-display text-lg font-medium tracking-tight">BoardroomAI</span>
+          <span className="font-display text-lg font-medium tracking-tight">GovProcure AI</span>
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">

@@ -26,14 +26,14 @@ const voteLabel = { yes: "Voted yes", no: "Voted no", conditional: "Voted condit
  */
 export function SeatingGrid({ executives }: { executives: SeatedExecutive[] }) {
   return (
-    <ul className="flex flex-wrap items-start justify-center gap-x-1 gap-y-3 sm:justify-start">
+    <ul className="flex flex-wrap items-start justify-center gap-x-4 gap-y-6 sm:justify-start">
       {executives.map((exec) => {
         const isSpeaking = exec.presence === "speaking";
         return (
           <li
             key={exec.id}
             className={cn(
-              "flex w-[5.5rem] flex-col items-center gap-1.5 rounded-lg px-1 py-2 text-center transition-colors duration-200",
+              "flex w-32 flex-col items-center gap-2 rounded-lg px-2 py-3 text-center transition-colors duration-200",
               isSpeaking && "bg-signal/10",
             )}
           >
@@ -57,8 +57,8 @@ export function SeatingGrid({ executives }: { executives: SeatedExecutive[] }) {
             <div className="min-w-0">
               {/* Full names overflow an 88px seat, so they clip to one line —
                   the role beneath is what distinguishes the seats at a glance. */}
-              <p className="truncate text-[0.7rem] font-medium leading-tight text-foreground">{exec.name}</p>
-              <p className="truncate text-[0.65rem] leading-tight text-muted-foreground">
+              <p className="truncate text-xs font-medium leading-tight text-foreground" title={exec.name}>{exec.name}</p>
+              <p className="truncate text-[0.65rem] leading-tight text-muted-foreground" title={exec.role.replace(/\s*Agent$/, "")}>
                 {exec.role.replace(/\s*Agent$/, "")}
               </p>
             </div>

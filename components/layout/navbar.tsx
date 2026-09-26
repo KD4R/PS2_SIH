@@ -54,10 +54,17 @@ export function Navbar({ title, user, notificationCount = 0, actions, className 
         </Button>
 
         {user && (
-          <Avatar size="sm">
-            <AvatarImage src={user.avatarUrl} alt={user.name} />
-            <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-          </Avatar>
+          <div className="flex items-center gap-3">
+            <Avatar size="sm">
+              <AvatarImage src={user.avatarUrl} alt={user.name} />
+              <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+            </Avatar>
+            <form action="/auth/signout" method="POST">
+              <Button variant="outline" size="sm" type="submit" className="text-xs">
+                Log Out
+              </Button>
+            </form>
+          </div>
         )}
       </div>
     </header>

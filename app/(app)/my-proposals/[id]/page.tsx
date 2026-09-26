@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { fetchProposalDetails, fetchMilestones } from '@/features/pilot-dashboard/service';
 import { MilestoneTracker } from '@/features/pilot-dashboard/components/milestone-tracker';
@@ -8,7 +8,9 @@ import type { ProposalDetailResponse, MilestoneDetail } from '@/types/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
-export default function ProposalMilestonesPage({ params }: { params: { id: string } }) {
+export default function ProposalMilestonesPage({ params }: { params: Promise<{ id: string }> }) {
+  const unwrappedParams = use(params);
+  const id = unwrappedParams.id;
   const [proposal, setProposal] = useState<ProposalDetailResponse | null>(null);
   const [milestones, setMilestones] = useState<MilestoneDetail[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,8 +19,8 @@ export default function ProposalMilestonesPage({ params }: { params: { id: strin
   const loadData = async () => {
     try {
       const [propData, msData] = await Promise.all([
-        fetchProposalDetails(params.id),
-        fetchMilestones(params.id)
+        fetchProposalDetails(id),
+        fetchMilestones(id)
       ]);
       setProposal(propData.proposal);
       setMilestones(msData.milestones || []);
@@ -30,7 +32,7 @@ export default function ProposalMilestonesPage({ params }: { params: { id: strin
     }
   };
 
-  useEffect(() => { loadData(); }, [params.id]);
+  useEffect(() => { loadData(); }, [id]);
 
   if (loading) return <div className="p-8 text-center animate-pulse">Loading tracker...</div>;
   if (error) return <div className="p-8 text-center text-destructive">{error}</div>;
@@ -75,10 +77,7 @@ export default function ProposalMilestonesPage({ params }: { params: { id: strin
           <MilestoneTracker 
             milestones={milestones} 
             role="startup_founder" 
-            onUploadEvidence={async (id, text) => {
-              await fetch(`/api/milestones/${id}/evidence`, { method: "POST", body: JSON.stringify({ text }) });
-              loadData();
-            }}
+            onUploadSuccess={loadData}
             onReviewEvidence={() => {}}
           />
         )}

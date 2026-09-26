@@ -16,7 +16,7 @@ import { fetchDashboard, type DashboardResponse } from "@/features/dashboard/ser
 
 const metricIcons = [ClipboardCheck, FileBarChart, Percent, ArrowUpRight];
 
-export function DashboardContent({ userName }: { userName: string }) {
+export function DashboardContent({ userName, role = "startup_founder" }: { userName: string, role?: string }) {
   const [data, setData] = useState<DashboardResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,12 +48,16 @@ export function DashboardContent({ userName }: { userName: string }) {
   return (
     <div className="space-y-10">
       <SectionHeader
-        eyebrow="Overview"
-        title={`Good morning, ${userName}`}
-        description="Two board sessions are active. Here's where every pitch in motion stands."
+        eyebrow={role === "department_officer" ? "Department Overview" : "Startup Overview"}
+        title={role === "department_officer" ? `Welcome, ${userName}` : `Good morning, ${userName}`}
+        description={role === "department_officer" ? "Monitor open challenges and evaluate startup proposals in your pipeline." : "Browse open government challenges, manage your proposals, and prep your next pitch."}
         action={
           <Button asChild>
-            <Link href="/meeting/new">New meeting</Link>
+            {role === "department_officer" ? (
+              <Link href="/challenges/new">Create Challenge</Link>
+            ) : (
+              <Link href="/marketplace">Browse Marketplace</Link>
+            )}
           </Button>
         }
       />
@@ -64,7 +68,7 @@ export function DashboardContent({ userName }: { userName: string }) {
         ))}
       </div>
 
-      <QuickActions />
+      <QuickActions role={role} />
 
       <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <ScoreTrendChart data={data.scoreTrend} />

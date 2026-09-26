@@ -6,4 +6,5 @@ export interface PipelineProposal {
   aiMatchScore?: number;
   submittedAt: string;
   proposalText?: string;
+  meetingId?: string | null;
 }

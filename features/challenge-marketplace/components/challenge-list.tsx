@@ -15,7 +15,7 @@ export function ChallengeList() {
 
   useEffect(() => {
     fetchOpenChallenges()
-      .then(data => setChallenges(data.challenges || []))
+      .then(data => setChallenges(data || []))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);

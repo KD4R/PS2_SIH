@@ -21,3 +21,19 @@ export async function approveProposal(proposalId: string, milestones: any[]) {
   if (!res.ok) throw new Error("Failed to approve");
   return res.json();
 }
+
+export async function submitForValidation(proposalId: string) {
+  const res = await fetch(`/api/proposals/${proposalId}/validation`, { method: "POST" });
+  if (!res.ok) throw new Error("Failed to submit for validation");
+  return res.json();
+}
+
+export async function recordProcurementDecision(proposalId: string, decision: string, notes: string, districts: string[]) {
+  const res = await fetch(`/api/proposals/${proposalId}/decide`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ decision, notes, districts })
+  });
+  if (!res.ok) throw new Error("Failed to record decision");
+  return res.json();
+}

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser, isSupabaseConfigured } from "@/lib/supabase/server";
+import { getCurrentUser, isSupabaseConfigured, createClient } from "@/lib/supabase/server";
 
 /** Route handlers use this before reading or mutating user-owned data. */
 export async function requireUser() {
@@ -9,20 +9,36 @@ export async function requireUser() {
   return { user, response: null };
 }
 
-import { cookies } from "next/headers";
+/** 
+ * Gets the authoritative role from the database. 
+ * Falls back to user_metadata only if DB fetch fails (e.g., race condition on signup).
+ */
+export async function getUserRole(userId: string, fallbackMetadataRole: string = "startup_founder"): Promise<string> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
+  
+  if (!error && data?.role) {
+    return data.role;
+  }
+  return fallbackMetadataRole;
+}
 
 /** Route handlers use this to restrict access by role. */
 export async function requireRole(allowedRoles: string | string[]) {
   const { user, response } = await requireUser();
   if (response) return { user, role: "", response };
   
-  const cookieStore = await cookies();
-  const demoRole = cookieStore.get("demo_role")?.value;
-  const role = demoRole || user?.user_metadata?.role || "startup_founder";
+  const fallbackRole = user?.user_metadata?.role || "startup_founder";
+  const role = await getUserRole(user!.id, fallbackRole);
   
   const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
   if (!roles.includes(role)) {
     return { user, role, response: NextResponse.json({ error: "Forbidden", code: "FORBIDDEN" }, { status: 403 }) };
   }
   return { user, role, response: null };
+}
+
+/** Route handlers use this to allow access to any of the specified roles. Alias for requireRole(array) for better readability. */
+export async function requireAnyRole(allowedRoles: string[]) {
+  return requireRole(allowedRoles);
 }

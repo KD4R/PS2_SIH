@@ -19,15 +19,17 @@ export async function fetchMilestones(proposalId: string): Promise<MilestoneList
 }
 
 export async function uploadMilestoneEvidence(milestoneId: string, file: File) {
-  // Mock file upload to storage bucket
-  const mockEvidenceUrl = "https://example.com/evidence/" + encodeURIComponent(file.name);
+  const formData = new FormData();
+  formData.append("file", file);
   
   const res = await fetch(`/api/milestones/${milestoneId}/evidence`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ evidenceUrl: mockEvidenceUrl })
+    body: formData
   });
 
-  if (!res.ok) throw new Error("Failed to upload evidence");
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || "Failed to upload evidence");
+  }
   return res.json();
 }

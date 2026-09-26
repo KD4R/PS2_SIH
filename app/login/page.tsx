@@ -36,6 +36,7 @@ function LoginForm() {
   );
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState<OAuthProvider | "email" | null>(null);
+  const [signUpRole, setSignUpRole] = useState<"startup_founder" | "department_officer">("startup_founder");
   const next = params.get("next")?.startsWith("/") ? params.get("next")! : "/dashboard";
 
   async function signInWithOAuth(provider: OAuthProvider) {
@@ -84,7 +85,10 @@ function LoginForm() {
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
+        options: { 
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+          data: { role: signUpRole }
+        },
       });
       setLoading(null);
       if (error) {
@@ -115,8 +119,8 @@ function LoginForm() {
           <span className="mx-auto mb-4 flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
             <Gavel className="size-5" />
           </span>
-          <h1 className="font-display text-2xl font-semibold">Welcome to BoardroomAI</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Sign in to convene your AI board.</p>
+          <h1 className="font-display text-2xl font-semibold">Welcome to GovProcure AI</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Sign in to manage startup pilot procurement.</p>
         </div>
 
         <div className="mb-6 flex rounded-lg border border-border p-1">
@@ -188,6 +192,26 @@ function LoginForm() {
                 placeholder="Repeat your password"
               />
               {fieldErrors.confirmPassword && <p className="text-xs text-destructive">{fieldErrors.confirmPassword}</p>}
+            </div>
+          )}
+
+          {mode === "sign-up" && (
+            <div className="space-y-1.5 pt-2">
+              <Label>I am joining as a...</Label>
+              <div className="flex rounded-lg border border-border p-1">
+                {(["startup_founder", "department_officer"] as const).map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setSignUpRole(r)}
+                    className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                      signUpRole === r ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-surface-elevated"
+                    }`}
+                  >
+                    {r === "startup_founder" ? "Startup" : "Gov Officer"}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 

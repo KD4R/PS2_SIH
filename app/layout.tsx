@@ -5,8 +5,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "BoardroomAI",
-    template: "%s · BoardroomAI",
+    default: "GovProcure AI",
+    template: "%s · GovProcure AI",
   },
   description: "Pitch your startup to a virtual board of AI executives.",
 };

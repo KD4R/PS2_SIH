@@ -1,3 +1,5 @@
+import { createClient } from "@/lib/supabase/server";
+
 export async function writeAuditLog(
   userId: string,
   role: string,
@@ -7,6 +9,14 @@ export async function writeAuditLog(
   oldState?: any,
   newState?: any
 ) {
-  // In a real system, this would write to a secure append-only audit log table
-  console.log(`[AUDIT LOG] User ${userId} (${role}) performed ${action} on ${resourceType} ${resourceId}`, { oldState, newState });
+  const supabase = await createClient();
+  await supabase.rpc('write_audit_log_entry', {
+    p_actor_id: userId,
+    p_actor_role: role,
+    p_entity_type: resourceType,
+    p_entity_id: resourceId,
+    p_action: action,
+    p_old_value: oldState,
+    p_new_value: newState
+  });
 }

@@ -7,6 +7,8 @@ export default async function DashboardPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
+  const role = user.user_metadata.role || "startup_founder";
+
   let userName = user.user_metadata.full_name ?? user.user_metadata.name ?? user.email?.split("@")[0] ?? "Board member";
   try {
     const profile = await getProfile(user.id);
@@ -15,5 +17,5 @@ export default async function DashboardPage() {
     // Profile may not exist until first login upsert completes.
   }
 
-  return <DashboardContent userName={userName} />;
+  return <DashboardContent userName={userName} role={role} />;
 }

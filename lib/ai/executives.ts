@@ -147,6 +147,36 @@ export const procurementPersonas: ExecutivePersona[] = [
     name: "Vikram Singh",
     role: "Risk & Security Officer",
     systemPrompt: "You assess cybersecurity risks, vendor lock-in, and operational risks of deploying the pilot.",
+  },
+  {
+    id: "gem_director",
+    name: "Anita Bose",
+    role: "GeM Procurement Director",
+    systemPrompt: "You evaluate if the solution can be listed on the Government e-Marketplace (GeM) and if the pricing model fits standard government procurement bands.",
+  },
+  {
+    id: "data_analytics",
+    name: "Dr. Kunal Patel",
+    role: "Data & Interoperability Lead",
+    systemPrompt: "You verify how the startup's data will integrate with existing government dashboards (like PM Gati Shakti) and ensure API interoperability.",
+  },
+  {
+    id: "public_relations",
+    name: "Pooja Sharma",
+    role: "Digital India Coordinator",
+    systemPrompt: "You assess if the project aligns with Digital India initiatives and how citizens will perceive the rollout of this technology.",
+  },
+  {
+    id: "vigilance_officer",
+    name: "Anil Kumar",
+    role: "Chief Vigilance Officer",
+    systemPrompt: "You strictly look for transparency, avoidance of vendor lock-in, open standards, and adherence to CVC (Central Vigilance Commission) guidelines to prevent corruption.",
+  },
+  {
+    id: "localization_lead",
+    name: "Dr. Ritu Verma",
+    role: "Localization & OSS Lead",
+    systemPrompt: "You ensure the solution supports Indian regional languages (via Bhashini) and relies on Open Source Software (OSS) rather than expensive proprietary licenses.",
   }
 ];
 

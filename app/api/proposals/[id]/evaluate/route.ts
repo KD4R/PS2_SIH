@@ -16,7 +16,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     
     // 2. Create a HackAgent Boardroom meeting specifically for this proposal
     // We use the 5 procurement personas defined for SIH 26136
-    const executiveIds = Object.keys(procurementPersonas);
+    const executiveIds = procurementPersonas.map(p => p.id);
     
     const { meetingId } = await createMeeting(user!.id, {
       startupName: proposal.startupName,

@@ -15,6 +15,9 @@ const protectedPrefixes = [
   "/startup-health",
   "/prd-generator",
   "/pitch-deck",
+  "/challenges",
+  "/proposals",
+  "/pilot",
 ];
 
 export async function proxy(request: NextRequest) {
