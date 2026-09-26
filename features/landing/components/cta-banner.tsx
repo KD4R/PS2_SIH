@@ -1,28 +1,100 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
+import { AnimatedTetrahedron } from "./animated-tetrahedron";
 
 export function CtaBanner() {
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setIsVisible(true); },
+      { threshold: 0.2 }
+    );
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePosition({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
+  };
+
   return (
-    <section className="container py-24">
-      <div className="grain relative overflow-hidden rounded-3xl bg-boardroom-glow border border-border-strong px-8 py-16 text-center sm:px-16">
-        <p className="text-xs font-medium uppercase tracking-[0.14em] text-primary">Ready when you are</p>
-        <h2 className="mx-auto mt-3 max-w-2xl text-balance font-display text-4xl font-medium tracking-tight sm:text-5xl">
-          Your board is already assembled.
-        </h2>
-        <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-          No scheduling. No prep deck. Submit your pitch and the debate starts in seconds.
-        </p>
-        <div className="relative z-10 mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Button size="lg" asChild>
-            <Link href="/meeting/new">
-              Start your pitch
-              <ArrowRight />
-            </Link>
-          </Button>
-          <Button size="lg" variant="secondary" asChild>
-            <Link href="/pricing">See pricing</Link>
-          </Button>
+    <section ref={sectionRef} className="relative py-24 lg:py-32 overflow-hidden">
+      <div className="container">
+        <div
+          className={`relative border border-border rounded-2xl transition-all duration-1000 ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
+          onMouseMove={handleMouseMove}
+        >
+          {/* Spotlight effect */}
+          <div
+            className="absolute inset-0 opacity-10 pointer-events-none transition-opacity duration-300 rounded-2xl"
+            style={{
+              background: `radial-gradient(600px circle at ${mousePosition.x}% ${mousePosition.y}%, hsl(32 42% 58% / 0.3), transparent 40%)`,
+            }}
+          />
+
+          <div className="relative z-10 px-8 lg:px-16 py-16 lg:py-24">
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
+              {/* Left content */}
+              <div className="flex-1">
+                <h2 className="text-4xl lg:text-7xl font-display tracking-tight mb-8 leading-[0.95]">
+                  Ready to modernize
+                  <br />
+                  procurement?
+                </h2>
+
+                <p className="text-xl text-muted-foreground mb-12 leading-relaxed max-w-xl">
+                  Join hundreds of government agencies already using AI-powered
+                  procurement. Start free, scale to the entire state.
+                </p>
+
+                <div className="flex flex-col sm:flex-row items-start gap-4">
+                  <Button
+                    size="lg"
+                    className="px-8 h-14 text-base rounded-xl group"
+                    asChild
+                  >
+                    <Link href="/login?next=/meeting/new">
+                      Get started free
+                      <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="secondary"
+                    className="h-14 px-8 text-base rounded-xl"
+                  >
+                    Talk to our team
+                  </Button>
+                </div>
+
+                <p className="text-sm text-muted-foreground mt-8 font-mono">
+                  No credit card required • GFR compliant
+                </p>
+              </div>
+
+              {/* Right animation */}
+              <div className="hidden lg:flex items-center justify-center w-[500px] h-[500px] -mr-16">
+                <AnimatedTetrahedron />
+              </div>
+            </div>
+          </div>
+
+          {/* Decorative corners */}
+          <div className="absolute top-0 right-0 w-32 h-32 border-b border-l border-border/30 rounded-tr-2xl" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 border-t border-r border-border/30 rounded-bl-2xl" />
         </div>
       </div>
     </section>

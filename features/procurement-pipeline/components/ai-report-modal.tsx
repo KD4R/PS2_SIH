@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { FileText, X, TrendingUp, AlertTriangle, XCircle, CheckCircle2 } from "lucide-react";
+import { FileText, X, TrendingUp, AlertTriangle, XCircle, CheckCircle2, ShieldAlert } from "lucide-react";
 
 interface DimensionalScores {
   technicalFeasibility: number;
@@ -23,6 +23,8 @@ interface ProposalVerdict {
   strengths: string[];
   risks: string[];
   recommendation: string;
+  fraudRiskLevel?: "LOW" | "MEDIUM" | "HIGH";
+  deepTechAnalysis?: string;
 }
 
 const DIMENSIONS = [
@@ -156,6 +158,33 @@ export function AiReportModal({
 
               {verdict && cfg && (
                 <>
+                  {/* 🚨 FRAUD RISK BANNER — Task 1 from PRD */}
+                  {verdict.fraudRiskLevel === "HIGH" && (
+                    <div className="rounded-xl border-2 border-red-500 bg-red-600 p-5 animate-pulse shadow-lg shadow-red-500/30">
+                      <div className="flex items-start gap-3">
+                        <ShieldAlert className="h-7 w-7 text-white shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-lg font-black text-white tracking-wide">
+                            🚨 SEVERE FRAUD RISK DETECTED
+                          </p>
+                          <p className="text-sm text-red-100 mt-2 leading-relaxed">
+                            <span className="font-bold text-white">AI GitHub Audit:</span>{" "}
+                            {verdict.deepTechAnalysis || "Deep-tech claims could not be verified against public code repositories."}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {verdict.fraudRiskLevel === "MEDIUM" && (
+                    <div className="rounded-xl border-2 border-amber-400 bg-amber-50 p-4">
+                      <p className="text-sm font-bold text-amber-800 flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4" /> ⚠️ Medium Fraud Risk — Review Recommended
+                      </p>
+                      {verdict.deepTechAnalysis && (
+                        <p className="text-sm text-amber-700 mt-1">{verdict.deepTechAnalysis}</p>
+                      )}
+                    </div>
+                  )}
                   {/* Verdict banner */}
                   <div className={`rounded-xl border-2 ${cfg.bg} ${cfg.border} p-4 flex items-center gap-4`}>
                     <div className="text-center shrink-0">

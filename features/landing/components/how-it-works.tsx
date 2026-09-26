@@ -1,37 +1,199 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { SectionHeader } from "@/components/shared/section-header";
-import { fadeUp, staggerContainer } from "@/lib/motion";
-import { processSteps } from "@/features/landing/mock";
+import { useEffect, useRef, useState } from "react";
+
+const steps = [
+  {
+    number: "I",
+    title: "Publish your tender",
+    description:
+      "Upload tender requirements and evaluation criteria. Our AI structures them into standardized, machine-readable formats instantly.",
+    code: `import { govprocure } from '@govprocure/core'
+
+govprocure.tender.create({
+  title: 'Road Construction Phase II',
+  department: 'PWD',
+  budget: '₹12.5 Cr',
+  criteria: ['quality', 'cost', 'timeline']
+})`,
+  },
+  {
+    number: "II",
+    title: "AI evaluates bids",
+    description:
+      "Bids are automatically scored against criteria. The AI detects anomalies, verifies documents, and ranks vendors objectively.",
+    code: `const results = await govprocure.evaluate({
+  tender: 'RCP-II-2025',
+  bids: allSubmissions,
+  checks: [
+    'price-anomaly',
+    'document-verify',
+    'cartel-detect'
+  ]
+})`,
+  },
+  {
+    number: "III",
+    title: "Award with confidence",
+    description:
+      "Review AI recommendations, approve or override with documented reasoning. The entire process is audit-ready from day one.",
+    code: `govprocure.award({
+  tender: 'RCP-II-2025',
+  vendor: results.topRanked,
+  audit: true
+})
+
+// Audit trail generated ✓
+// Citizen portal updated ✓`,
+  },
+];
 
 export function HowItWorks() {
-  return (
-    <section id="how-it-works" className="container py-24">
-      <SectionHeader
-        eyebrow="How it works"
-        title="Three steps between an idea and a verdict"
-        description="No scheduling, no board deck to prepare. The board convenes the moment you submit."
-      />
+  const [activeStep, setActiveStep] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
 
-      <motion.ol
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-80px" }}
-        variants={staggerContainer(0.12)}
-        className="mt-14 grid gap-8 md:grid-cols-3"
-      >
-        {processSteps.map((step, index) => (
-          <motion.li key={step.step} variants={fadeUp} className="relative">
-            <span className="font-display text-6xl font-medium text-primary/25">{step.step}</span>
-            <h3 className="mt-3 font-display text-xl font-medium tracking-tight text-foreground">{step.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.description}</p>
-            {index < processSteps.length - 1 && (
-              <span className="absolute -right-4 top-6 hidden h-px w-8 bg-border-strong md:block" aria-hidden />
-            )}
-          </motion.li>
-        ))}
-      </motion.ol>
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setIsVisible(true); },
+      { threshold: 0.1 }
+    );
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveStep((prev) => (prev + 1) % steps.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <section
+      id="how-it-works"
+      ref={sectionRef}
+      className="relative py-24 lg:py-32 bg-foreground text-background overflow-hidden"
+    >
+      {/* Diagonal lines pattern */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `repeating-linear-gradient(
+            -45deg,
+            transparent,
+            transparent 40px,
+            currentColor 40px,
+            currentColor 41px
+          )`,
+          }}
+        />
+      </div>
+
+      <div className="relative z-10 container">
+        {/* Header */}
+        <div className="mb-16 lg:mb-24">
+          <span className="inline-flex items-center gap-3 text-sm font-mono text-background/50 mb-6">
+            <span className="w-8 h-px bg-background/30" />
+            Process
+          </span>
+          <h2
+            className={`text-4xl lg:text-6xl font-display tracking-tight transition-all duration-700 ${
+              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+            }`}
+          >
+            Three steps.
+            <br />
+            <span className="text-background/50">Complete transparency.</span>
+          </h2>
+        </div>
+
+        {/* Main content */}
+        <div className="grid lg:grid-cols-2 gap-16 lg:gap-24">
+          {/* Steps */}
+          <div className="space-y-0">
+            {steps.map((step, index) => (
+              <button
+                key={step.number}
+                type="button"
+                onClick={() => setActiveStep(index)}
+                className={`w-full text-left py-8 border-b border-background/10 transition-all duration-500 group ${
+                  activeStep === index ? "opacity-100" : "opacity-40 hover:opacity-70"
+                }`}
+              >
+                <div className="flex items-start gap-6">
+                  <span className="font-display text-3xl text-background/30">{step.number}</span>
+                  <div className="flex-1">
+                    <h3 className="text-2xl lg:text-3xl font-display mb-3 group-hover:translate-x-2 transition-transform duration-300">
+                      {step.title}
+                    </h3>
+                    <p className="text-background/60 leading-relaxed">{step.description}</p>
+
+                    {activeStep === index && (
+                      <div className="mt-4 h-px bg-background/20 overflow-hidden">
+                        <div
+                          className="h-full bg-background w-0"
+                          style={{ animation: "hiw-progress 5s linear forwards" }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Code display */}
+          <div className="lg:sticky lg:top-32 self-start">
+            <div className="border border-background/10 overflow-hidden rounded-xl">
+              {/* Window header */}
+              <div className="px-6 py-4 border-b border-background/10 flex items-center justify-between">
+                <div className="flex gap-2">
+                  <div className="w-3 h-3 rounded-full bg-background/20" />
+                  <div className="w-3 h-3 rounded-full bg-background/20" />
+                  <div className="w-3 h-3 rounded-full bg-background/20" />
+                </div>
+                <span className="text-xs font-mono text-background/40">procurement.ts</span>
+              </div>
+
+              {/* Code content */}
+              <div className="p-8 font-mono text-sm min-h-[280px]">
+                <pre className="text-background/70">
+                  {steps[activeStep].code.split("\n").map((line, lineIndex) => (
+                    <div
+                      key={`${activeStep}-${lineIndex}`}
+                      className="leading-loose hiw-code-line-reveal"
+                      style={{ animationDelay: `${lineIndex * 80}ms` }}
+                    >
+                      <span className="text-background/20 select-none w-8 inline-block">{lineIndex + 1}</span>
+                      <span className="inline-flex">
+                        {line.split("").map((char, charIndex) => (
+                          <span
+                            key={`${activeStep}-${lineIndex}-${charIndex}`}
+                            className="hiw-code-char-reveal"
+                            style={{
+                              animationDelay: `${lineIndex * 80 + charIndex * 15}ms`,
+                            }}
+                          >
+                            {char === " " ? "\u00A0" : char}
+                          </span>
+                        ))}
+                      </span>
+                    </div>
+                  ))}
+                </pre>
+              </div>
+
+              {/* Status */}
+              <div className="px-6 py-4 border-t border-background/10 flex items-center gap-3">
+                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                <span className="text-xs font-mono text-background/40">Ready</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
   );
 }

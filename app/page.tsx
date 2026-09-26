@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 
 export default function LandingPage() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col noise-overlay">
       <MarketingNavbar />
       <main className="flex-1">
         <Hero />

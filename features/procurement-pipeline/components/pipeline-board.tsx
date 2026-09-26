@@ -11,6 +11,7 @@ import { ContractGenerator } from "./contract-generator";
 import { submitForValidation, recordProcurementDecision } from "../service";
 import { VerdictCard } from "./verdict-card";
 import { AiReportModal } from "./ai-report-modal";
+import { KillSwitchDialog } from "./kill-switch-dialog";
 
 const COLUMNS = ["submitted", "evaluating", "evaluated", "pilot_active", "validation", "decided", "rejected"];
 
@@ -20,6 +21,9 @@ export function PipelineBoard({ challengeId }: { challengeId: string }) {
   
   const [approving, setApproving] = useState<string | null>(null);
   const [rejecting, setRejecting] = useState<string | null>(null);
+  const [killSwitchTarget, setKillSwitchTarget] = useState<string | null>(null);
+  const [killSwitchToast, setKillSwitchToast] = useState(false);
+  const [whatsappToast, setWhatsappToast] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -41,6 +45,8 @@ export function PipelineBoard({ challengeId }: { challengeId: string }) {
     if (!approving) return;
     await approveProposal(approving, milestones);
     setApproving(null);
+    setWhatsappToast(true);
+    setTimeout(() => setWhatsappToast(false), 5000);
     load();
   };
 
@@ -131,8 +137,18 @@ export function PipelineBoard({ challengeId }: { challengeId: string }) {
                     <CardFooter className="pt-0 flex flex-col gap-2">
                       <ContractGenerator startupName={(p as any).startupName || `Startup ${p.startupId.substring(0,8)}`} />
                       <Button size="sm" variant="outline" className="w-full text-xs" onClick={() => handleSubmitForValidation(p.id)}>Submit for Validation</Button>
+                      {/* 🛑 Financial Kill Switch — Task 3 from PRD */}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full text-xs bg-red-600 hover:bg-red-700 text-white border-red-600 font-bold gap-1.5"
+                        onClick={() => setKillSwitchTarget(p.id)}
+                      >
+                        🛑 HALT PILOT (Kill Switch)
+                      </Button>
                     </CardFooter>
                   )}
+
                   {col === "validation" && (
                     <CardFooter className="pt-0 flex flex-col gap-2">
                       <Button size="sm" variant="outline" className="w-full text-xs bg-purple-500/10 text-purple-700 hover:bg-purple-500/20 border-purple-200" onClick={() => handleRecordDecision(p.id)}>Record Decision</Button>
@@ -152,6 +168,60 @@ export function PipelineBoard({ challengeId }: { challengeId: string }) {
       
       {approving && <MilestoneDialog onClose={() => setApproving(null)} onSubmit={handleApprove} />}
       {rejecting && <RejectDialog onClose={() => setRejecting(null)} onSubmit={handleReject} />}
+
+      {/* 🛑 Kill Switch Dialog — Task 3 from PRD */}
+      {killSwitchTarget && (
+        <KillSwitchDialog
+          onClose={() => setKillSwitchTarget(null)}
+          onSubmit={async (reason: string) => {
+            try {
+              const res = await fetch(`/api/proposals/${killSwitchTarget}/kill-switch`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ reason }),
+              });
+              if (res.ok) {
+                setKillSwitchTarget(null);
+                setKillSwitchToast(true);
+                setTimeout(() => setKillSwitchToast(false), 4000);
+                load();
+              } else {
+                alert("Kill switch failed. Check permissions.");
+              }
+            } catch (e) {
+              console.error(e);
+              alert("Network error.");
+            }
+          }}
+        />
+      )}
+
+      {/* Kill Switch Toast */}
+      {killSwitchToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-red-600 text-white px-6 py-4 rounded-xl shadow-2xl shadow-red-500/30 animate-fade-up flex items-center gap-3 border border-red-500">
+          <span className="text-xl">🛑</span>
+          <div>
+            <p className="font-bold text-sm">Pilot Halted</p>
+            <p className="text-xs text-red-100">Funds Frozen. Legal Notice Generated.</p>
+          </div>
+        </div>
+      )}
+
+      {/* WhatsApp Mock Toast - Task 5 from PRD */}
+      {whatsappToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#25D366] text-white px-4 py-3 rounded-2xl shadow-xl animate-fade-up flex items-start gap-3 w-80">
+          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+            <span className="text-xl">🏢</span>
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-0.5">
+              <p className="font-bold text-sm">Govt of Maharashtra</p>
+              <span className="text-xs opacity-75 whitespace-nowrap ml-auto">Just now</span>
+            </div>
+            <p className="text-sm leading-tight">Your pilot is approved! The contract and milestones have been set.</p>
+          </div>
+        </div>
+      )}
     </>
   );
 }

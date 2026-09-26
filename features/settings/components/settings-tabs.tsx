@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { CheckCircle2, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,6 +32,10 @@ export function SettingsTabs() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+
+  const [dpiitNumber, setDpiitNumber] = useState("");
+  const [isDpiitVerified, setIsDpiitVerified] = useState(false);
+  const [verifyingDpiit, setVerifyingDpiit] = useState(false);
 
   // Seed the form once the workspace arrives, and re-seed after a reload.
   useEffect(() => {
@@ -66,6 +71,28 @@ export function SettingsTabs() {
     setPrefs(next);
     // Switches save on change — there is no Save button on this tab.
     void save({ notificationPrefs: next });
+  }
+
+  async function verifyDpiit() {
+    if (!dpiitNumber.trim()) return;
+    setVerifyingDpiit(true);
+    try {
+      const res = await fetch("/api/dpiit/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dpiitNumber }),
+      });
+      if (res.ok) {
+        setIsDpiitVerified(true);
+      } else {
+        alert("Verification failed. Make sure the number starts with DIPP.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Network error.");
+    } finally {
+      setVerifyingDpiit(false);
+    }
   }
 
   if (loading) return <Skeleton className="h-80 w-full" />;
@@ -116,6 +143,39 @@ export function SettingsTabs() {
               <div className="space-y-1.5 sm:col-span-2">
                 <Label htmlFor="title">Title</Label>
                 <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Founder" />
+              </div>
+
+              {/* Task 4: DPIIT Verification */}
+              <div className="space-y-1.5 sm:col-span-2 pt-4 border-t">
+                <div className="flex items-center justify-between mb-2">
+                  <Label>DPIIT Registration</Label>
+                  {isDpiitVerified && (
+                    <Badge className="bg-emerald-500 hover:bg-emerald-600 gap-1 text-xs">
+                      <CheckCircle2 className="w-3 h-3" /> DPIIT Verified
+                    </Badge>
+                  )}
+                </div>
+                {!isDpiitVerified ? (
+                  <div className="flex items-end gap-3">
+                    <div className="flex-1 space-y-1.5">
+                      <Input
+                        value={dpiitNumber}
+                        onChange={(e) => setDpiitNumber(e.target.value)}
+                        placeholder="e.g. DIPP12345"
+                      />
+                      <p className="text-xs text-muted-foreground italic">
+                        (Hint: Enter any number starting with DIPP, e.g., DIPP12345, to simulate a successful API verification)
+                      </p>
+                    </div>
+                    <Button type="button" variant="secondary" onClick={verifyDpiit} disabled={verifyingDpiit || !dpiitNumber.trim()}>
+                      {verifyingDpiit ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify via API"}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-sm text-emerald-800 font-medium">
+                    Verified DPIIT Number: {dpiitNumber || "DIPP12345"}
+                  </div>
+                )}
               </div>
             </CardContent>
             <CardFooter className="items-center gap-3">

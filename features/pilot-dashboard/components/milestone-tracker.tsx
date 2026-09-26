@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { MilestoneDetail } from "@/types/api";
 import { EvidenceUpload } from "./evidence-upload";
+import { Loader2 } from "lucide-react";
 
 export function MilestoneTracker({
   milestones,
@@ -17,6 +18,16 @@ export function MilestoneTracker({
   onUploadSuccess: () => void;
   onReviewEvidence: (id: string, approved: boolean) => void;
 }) {
+  const [processingId, setProcessingId] = React.useState<string | null>(null);
+
+  const handleApprove = (id: string) => {
+    setProcessingId(id);
+    setTimeout(() => {
+      setProcessingId(null);
+      onReviewEvidence(id, true);
+    }, 2000);
+  };
+
   return (
     <div className="space-y-4">
       {milestones.map(m => (
@@ -36,8 +47,25 @@ export function MilestoneTracker({
           
           {m.status === "evidence_submitted" && role === "department_officer" && (
             <div className="flex gap-2">
-              <Button size="sm" onClick={() => onReviewEvidence(m.id, true)}>Approve & Release Payment</Button>
-              <Button size="sm" variant="destructive" onClick={() => onReviewEvidence(m.id, false)}>Reject</Button>
+              <Button size="sm" onClick={() => handleApprove(m.id)} disabled={processingId === m.id}>Approve & Release Payment</Button>
+              <Button size="sm" variant="destructive" onClick={() => onReviewEvidence(m.id, false)} disabled={processingId === m.id}>Reject</Button>
+            </div>
+          )}
+          
+          {/* Razorpay Fake Loading Modal - Task 5 from PRD */}
+          {processingId === m.id && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+              <div className="bg-white rounded-lg shadow-2xl w-full max-w-sm p-6 flex flex-col items-center gap-4">
+                <div className="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center mb-2">
+                  <span className="text-white font-bold text-2xl">₹</span>
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">Razorpay</h3>
+                <p className="text-sm text-gray-500 font-medium text-center">
+                  Transferring ₹{m.paymentInr.toLocaleString()} via NEFT...
+                </p>
+                <Loader2 className="w-8 h-8 animate-spin text-blue-600 mt-2" />
+                <p className="text-xs text-gray-400 mt-2">Please do not close this window</p>
+              </div>
             </div>
           )}
           
