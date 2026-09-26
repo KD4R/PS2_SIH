@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { requireRole, requireUser } from "@/lib/server/auth";
 import { submitProposal, getProposalsForChallenge } from "@/lib/server/procurement";
 import { CreateProposalRequestSchema } from "@/types/api";
-import { checkProposalSpam } from "@/lib/ai/spam-filter";
 import { translateToEnglish } from "@/lib/ai/bhashini";
+import { sanitizeInput } from "@/lib/server/xss-sanitize";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { user, role, response } = await requireRole("department_officer");
@@ -26,6 +26,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const { id } = await params;
     const body = await req.json();
     const input = CreateProposalRequestSchema.parse(body);
+    
+    // OWASP: XSS Sanitization
+    input.proposalText = sanitizeInput(input.proposalText);
     
     // 1. Bhashini Translation (Regional Language Support)
     const { translatedText, originalLanguage } = await translateToEnglish(input.proposalText);
