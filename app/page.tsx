@@ -5,9 +5,6 @@ import { Hero } from "@/features/landing/components/hero";
 import { HowItWorks } from "@/features/landing/components/how-it-works";
 import { ExecutivesShowcase } from "@/features/landing/components/executives-showcase";
 import { FeaturesGrid } from "@/features/landing/components/features-grid";
-import { Testimonials } from "@/features/landing/components/testimonials";
-import { Pricing } from "@/features/landing/components/pricing";
-import { Faq } from "@/features/landing/components/faq";
 import { CtaBanner } from "@/features/landing/components/cta-banner";
 
 export const metadata: Metadata = {
@@ -25,9 +22,6 @@ export default function LandingPage() {
         <HowItWorks />
         <ExecutivesShowcase />
         <FeaturesGrid />
-        <Testimonials />
-        <Pricing />
-        <Faq />
         <CtaBanner />
       </main>
       <Footer />

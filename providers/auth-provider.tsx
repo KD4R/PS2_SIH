@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { ensureProfile } from "@/lib/supabase/profile";
 
-const AUTH_PAGES = ["/login", "/auth/forgot-password"];
+const AUTH_PAGES = ["/auth/forgot-password"];
 
 function AuthRedirectListener() {
   const router = useRouter();
@@ -18,14 +18,33 @@ function AuthRedirectListener() {
 
     redirected.current = false;
     const supabase = createClient();
-    const next = searchParams.get("next")?.startsWith("/") ? searchParams.get("next")! : "/dashboard";
+    const nextParam = searchParams.get("next");
+
+    function getDashboardUrl(user: any) {
+      const role = user?.user_metadata?.role;
+      if (role === "startup" || role === "startup_founder") return "/dashboard/startup";
+      if (role === "gov" || role === "department_officer") return "/dashboard/gov";
+      if (role === "evaluator") return "/dashboard/evaluator";
+      if (role === "admin") return "/dashboard/admin";
+      
+      const match = typeof document !== 'undefined' ? document.cookie.match(/(?:^|; )demo_role=([^;]*)/) : null;
+      if (match) {
+        const demoRole = decodeURIComponent(match[1]);
+        if (demoRole === "startup" || demoRole === "startup_founder") return "/dashboard/startup";
+        if (demoRole === "gov" || demoRole === "department_officer") return "/dashboard/gov";
+        if (demoRole === "evaluator") return "/dashboard/evaluator";
+        if (demoRole === "admin") return "/dashboard/admin";
+      }
+      return "/dashboard";
+    }
 
     async function handleSession() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user || redirected.current) return;
       await ensureProfile(session.user);
       redirected.current = true;
-      router.replace(next);
+      const nextUrl = nextParam?.startsWith("/") ? nextParam : getDashboardUrl(session.user);
+      router.replace(nextUrl);
     }
 
     void handleSession();
@@ -35,7 +54,8 @@ function AuthRedirectListener() {
       await ensureProfile(session.user);
       if (AUTH_PAGES.includes(pathname) && !redirected.current && (event === "SIGNED_IN" || event === "TOKEN_REFRESHED")) {
         redirected.current = true;
-        router.replace(next);
+        const nextUrl = nextParam?.startsWith("/") ? nextParam : getDashboardUrl(session.user);
+        router.replace(nextUrl);
       }
     });
 

@@ -1,18 +1,16 @@
 import Link from "next/link";
-import { Compass, FileBarChart, Users, Presentation, Gavel, FileText } from "lucide-react";
+import { Compass, FileBarChart, Users, Presentation, Gavel, FileText, FileEdit, Search } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 const startupActions = [
   { label: "Marketplace", description: "Browse open government challenges", href: "/marketplace", icon: Compass },
   { label: "My Proposals", description: "Track your active pilot proposals", href: "/my-proposals", icon: FileText },
-  { label: "Reports", description: "Browse past AI boardroom reports", href: "/reports", icon: FileBarChart },
-  { label: "Pitch deck", description: "Generate a founder-ready deck", href: "/pitch-deck", icon: Presentation },
 ];
 
 const officerActions = [
-  { label: "My Challenges", description: "Manage procurement challenges", href: "/challenges", icon: Compass },
-  { label: "Boardroom", description: "Queue AI evaluation sessions", href: "/boardroom", icon: Gavel },
-  { label: "Evaluators", description: "Manage your AI persona mix", href: "/executives", icon: Users },
+  { label: "Draft New Challenge", description: "Post outcome-based problem statements", href: "/challenges/new", icon: FileEdit },
+  { label: "Browse Startups", description: "Discover DPIIT verified startups", href: "/marketplace", icon: Search },
+  { label: "Standard Templates", description: "IP/Data & sandbox agreements", href: "/templates", icon: FileText },
 ];
 
 export function QuickActions({ role = "startup_founder" }: { role?: string }) {

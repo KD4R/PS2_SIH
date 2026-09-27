@@ -7,9 +7,13 @@ import { SectionHeader } from "@/components/shared/section-header";
 import { MetricCard } from "@/components/shared/metric-card";
 import { Button } from "@/components/ui/button";
 import { QuickActions } from "@/features/dashboard/components/quick-actions";
-import { ScoreTrendChart } from "@/features/dashboard/components/score-trend-chart";
-import { RecentMeetings } from "@/features/dashboard/components/recent-meetings";
-import { ActivityFeed } from "@/features/dashboard/components/activity-feed";
+import { ProposalPipeline } from "@/features/dashboard/components/startup/proposal-pipeline";
+import { MilestoneTracker } from "@/features/dashboard/components/startup/milestone-tracker";
+import { RecommendedChallenges } from "@/features/dashboard/components/startup/recommended-challenges";
+import { ComplianceHealth } from "@/features/dashboard/components/startup/compliance-health";
+import { ActiveChallenges } from "@/features/dashboard/components/officer/active-challenges";
+import { ActionableInbox } from "@/features/dashboard/components/officer/actionable-inbox";
+import { ActivePilots } from "@/features/dashboard/components/officer/active-pilots";
 import { ErrorState } from "@/components/shared/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchDashboard, type DashboardResponse } from "@/features/dashboard/service";
@@ -62,20 +66,25 @@ export function DashboardContent({ userName, role = "startup_founder" }: { userN
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {data.metrics.map((metric, index) => (
-          <MetricCard key={metric.label} label={metric.label} value={metric.value} trend={metric.trend} icon={metricIcons[index]} />
-        ))}
-      </div>
-
       <QuickActions role={role} />
 
-      <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-        <ScoreTrendChart data={data.scoreTrend} />
-        <ActivityFeed items={data.recentActivity} />
-      </div>
+      {role === "department_officer" && (
+        <div className="grid gap-6 lg:grid-cols-2">
+          <ActiveChallenges />
+          <ActionableInbox />
+          <ActivePilots />
+        </div>
+      )}
 
-      <RecentMeetings meetings={data.recentMeetings} />
+      {role === "startup_founder" && (
+        <div className="grid gap-6 lg:grid-cols-2">
+          <ProposalPipeline />
+          <MilestoneTracker />
+          <RecommendedChallenges />
+          <ComplianceHealth />
+        </div>
+      )}
+
     </div>
   );
 }

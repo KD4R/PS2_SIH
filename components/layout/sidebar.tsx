@@ -34,12 +34,12 @@ export function Sidebar({ badgeCounts, collapsed = false, onToggleCollapsed, cla
         className,
       )}
     >
-      <div className={cn("flex h-16 items-center gap-2 px-4", collapsed && "justify-center px-0")}>
+      <Link href="/" className={cn("flex h-16 items-center gap-2 px-4 hover:opacity-80 transition-opacity", collapsed && "justify-center px-0")}>
         <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
           <Gavel className="size-4" />
         </span>
         {!collapsed && <span className="font-display text-lg font-medium tracking-tight">GovProcure AI</span>}
-      </div>
+      </Link>
 
       <Separator />
 

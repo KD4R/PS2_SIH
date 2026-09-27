@@ -29,7 +29,7 @@ export function CtaBanner() {
   };
 
   return (
-    <section ref={sectionRef} className="relative py-24 lg:py-32 overflow-hidden">
+    <section ref={sectionRef} className="relative pt-24 pb-12 lg:pt-32 lg:pb-16 overflow-hidden">
       <div className="container">
         <div
           className={`relative border border-border rounded-2xl transition-all duration-1000 ${
@@ -66,7 +66,7 @@ export function CtaBanner() {
                     className="px-8 h-14 text-base rounded-xl group"
                     asChild
                   >
-                    <Link href="/login?next=/meeting/new">
+                    <Link href="/signup">
                       Get started free
                       <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
                     </Link>

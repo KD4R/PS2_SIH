@@ -42,21 +42,6 @@ export const primaryNavFounder: NavSection[] = [
       { label: "My Proposals", href: "/my-proposals", icon: FileText, badgeKey: "activeMeetings" },
     ],
   },
-  {
-    label: "Intelligence",
-    items: [
-      { label: "Boardroom", href: "/boardroom", icon: Gavel },
-      { label: "Reports", href: "/reports", icon: FileBarChart, badgeKey: "pendingReports" },
-      { label: "Market research", href: "/market-research", icon: LineChart },
-    ],
-  },
-  {
-    label: "Studio",
-    items: [
-      { label: "Executives", href: "/executives", icon: Users },
-      { label: "Pitch deck", href: "/pitch-deck", icon: Presentation },
-    ],
-  },
 ];
 
 export const primaryNavOfficer: NavSection[] = [

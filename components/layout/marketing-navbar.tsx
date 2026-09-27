@@ -9,8 +9,7 @@ import { cn } from "@/lib/utils";
 const navLinks = [
   { name: "Features", href: "#features" },
   { name: "How it works", href: "#how-it-works" },
-  { name: "Pricing", href: "#pricing" },
-  { name: "Metrics", href: "#faq" },
+  { name: "Public Directory", href: "/public" },
 ];
 
 /**
@@ -87,6 +86,8 @@ export function MarketingNavbar({ className }: { className?: string }) {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
+
+            
             <Link
               href="/login"
               className={cn(
@@ -104,7 +105,7 @@ export function MarketingNavbar({ className }: { className?: string }) {
               )}
               asChild
             >
-              <Link href="/login?next=/meeting/new">Get started</Link>
+              <Link href="/signup">Sign up</Link>
             </Button>
           </div>
 
@@ -167,7 +168,7 @@ export function MarketingNavbar({ className }: { className?: string }) {
               onClick={() => setIsMobileMenuOpen(false)}
               asChild
             >
-              <Link href="/login?next=/meeting/new">Get started</Link>
+              <Link href="/signup">Get started</Link>
             </Button>
           </div>
         </div>

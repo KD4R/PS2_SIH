@@ -1,262 +1,143 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Github, Chrome, Gavel, Mail } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import { ensureProfile } from "@/lib/supabase/profile";
 
-type AuthMode = "sign-in" | "sign-up";
-type OAuthProvider = "google" | "github";
-
-const MIN_PASSWORD_LENGTH = 8;
-
-function mapAuthError(message: string) {
-  const lower = message.toLowerCase();
-  if (lower.includes("invalid login credentials")) return "Email or password is incorrect.";
-  if (lower.includes("user already registered")) return "An account with this email already exists. Sign in instead.";
-  if (lower.includes("password")) return "Use at least 8 characters with letters and numbers.";
-  if (lower.includes("email not confirmed")) return "Confirm your email before signing in.";
-  return message;
-}
-
-function LoginForm() {
-  const params = useSearchParams();
-  const [mode, setMode] = useState<AuthMode>("sign-in");
+export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [message, setMessage] = useState<string | null>(
-    params.get("error") ? "We could not complete sign-in. Please try again." : null,
-  );
-  const [success, setSuccess] = useState<string | null>(null);
-  const [loading, setLoading] = useState<OAuthProvider | "email" | null>(null);
-  const [signUpRole, setSignUpRole] = useState<"startup_founder" | "department_officer">("startup_founder");
-  const next = params.get("next")?.startsWith("/") ? params.get("next")! : "/dashboard";
+  const [role, setRole] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  async function signInWithOAuth(provider: OAuthProvider) {
-    if (!isSupabaseConfigured()) {
-      setMessage("Supabase has not been configured yet. Add the project URL and anon key to .env.local.");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!role) {
+      setError("Please select a user role.");
       return;
     }
-    setLoading(provider);
-    setMessage(null);
-    setSuccess(null);
-    const { error: signInError } = await createClient().auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
-    });
-    if (signInError) {
-      setMessage(signInError.message);
-      setLoading(null);
-    }
-  }
 
-  function validateEmailPassword() {
-    const errors: Record<string, string> = {};
-    if (!email.trim()) errors.email = "Email is required.";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errors.email = "Enter a valid email address.";
-    if (!password) errors.password = "Password is required.";
-    else if (password.length < MIN_PASSWORD_LENGTH) errors.password = `Use at least ${MIN_PASSWORD_LENGTH} characters.`;
-    if (mode === "sign-up" && password !== confirmPassword) errors.confirmPassword = "Passwords do not match.";
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
-  }
-
-  async function handleEmailAuth(event: React.FormEvent) {
-    event.preventDefault();
     if (!isSupabaseConfigured()) {
-      setMessage("Supabase has not been configured yet. Add the project URL and anon key to .env.local.");
+      setError("Authentication is not configured. Contact the administrator.");
       return;
     }
-    if (!validateEmailPassword()) return;
 
-    setLoading("email");
-    setMessage(null);
-    setSuccess(null);
-    const supabase = createClient();
-
-    if (mode === "sign-up") {
-      const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
         password,
-        options: { 
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
-          data: { role: signUpRole }
-        },
       });
-      setLoading(null);
-      if (error) {
-        setMessage(mapAuthError(error.message));
-        return;
-      }
-      if (data.session) {
-        await ensureProfile(data.user!);
-        return;
-      }
-      setSuccess("Check your email to confirm your account, then sign in.");
-      return;
-    }
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-    setLoading(null);
-    if (error) {
-      setMessage(mapAuthError(error.message));
-      return;
+      if (signInError) {
+        setError(signInError.message);
+        setLoading(false);
+        return;
+      }
+
+      // Set a demo_role cookie so the (app) layout can pick it up
+      document.cookie = `demo_role=${role === "startup" ? "startup_founder" : role === "gov" ? "department_officer" : "evaluator"}; path=/; max-age=86400`;
+
+      // Redirect based on selected role
+      if (role === "startup") {
+        router.push("/dashboard/startup");
+      } else if (role === "gov") {
+        router.push("/dashboard/gov");
+      } else if (role === "evaluator") {
+        router.push("/dashboard/evaluator");
+      }
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.");
+      setLoading(false);
     }
-    if (data.user) await ensureProfile(data.user);
-  }
+  };
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <section className="glass w-full max-w-md rounded-2xl border border-border p-8 shadow-2xl">
+      <section className="glass w-full max-w-md rounded-2xl border border-border p-8 shadow-2xl bg-card">
+        <div className="mb-4">
+          <Link href="/" className="text-sm text-primary hover:underline flex items-center gap-2 w-fit">
+            &larr; Back to Home
+          </Link>
+        </div>
         <div className="mb-8 text-center">
-          <span className="mx-auto mb-4 flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Gavel className="size-5" />
-          </span>
-          <h1 className="font-display text-2xl font-semibold">Welcome to GovProcure AI</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Sign in to manage startup pilot procurement.</p>
+          <h1 className="font-display text-2xl font-semibold">Sign In</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Welcome back to GovProcure</p>
         </div>
 
-        <div className="mb-6 flex rounded-lg border border-border p-1">
-          {(["sign-in", "sign-up"] as const).map((value) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => {
-                setMode(value);
-                setMessage(null);
-                setSuccess(null);
-                setFieldErrors({});
-              }}
-              className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                mode === value ? "bg-primary/12 text-primary" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {value === "sign-in" ? "Sign in" : "Create account"}
-            </button>
-          ))}
-        </div>
-
-        <form onSubmit={handleEmailAuth} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
-              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              invalid={Boolean(fieldErrors.email)}
-              placeholder="you@company.com"
+              placeholder="Email"
+              className="h-12 bg-background border-input"
+              required
             />
-            {fieldErrors.email && <p className="text-xs text-destructive">{fieldErrors.email}</p>}
           </div>
 
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
-              {mode === "sign-in" && (
-                <Link href="/auth/forgot-password" className="text-xs text-primary hover:underline">
-                  Forgot password?
-                </Link>
-              )}
-            </div>
             <Input
               id="password"
               type="password"
-              autoComplete={mode === "sign-up" ? "new-password" : "current-password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              invalid={Boolean(fieldErrors.password)}
-              placeholder={mode === "sign-up" ? "At least 8 characters" : "Your password"}
+              placeholder="Password"
+              className="h-12 bg-background border-input"
+              required
             />
-            {fieldErrors.password && <p className="text-xs text-destructive">{fieldErrors.password}</p>}
           </div>
 
-          {mode === "sign-up" && (
-            <div className="space-y-1.5">
-              <Label htmlFor="confirmPassword">Confirm password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                invalid={Boolean(fieldErrors.confirmPassword)}
-                placeholder="Repeat your password"
-              />
-              {fieldErrors.confirmPassword && <p className="text-xs text-destructive">{fieldErrors.confirmPassword}</p>}
-            </div>
+          <div className="space-y-1.5">
+            <select
+              id="role"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="flex h-12 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              required
+            >
+              <option value="" disabled>Please Select User Role</option>
+              <option value="startup">Startup / Innovator</option>
+              <option value="gov">Government Officer / Department</option>
+              <option value="evaluator">Evaluator / Domain Expert</option>
+            </select>
+          </div>
+
+          <div className="pt-2">
+            <Link href="/auth/forgot-password" className="text-sm text-blue-600 hover:underline">
+              Forgot Your Password?
+            </Link>
+          </div>
+
+          {error && (
+            <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+              {error}
+            </p>
           )}
 
-          {mode === "sign-up" && (
-            <div className="space-y-1.5 pt-2">
-              <Label>I am joining as a...</Label>
-              <div className="flex rounded-lg border border-border p-1">
-                {(["startup_founder", "department_officer"] as const).map((r) => (
-                  <button
-                    key={r}
-                    type="button"
-                    onClick={() => setSignUpRole(r)}
-                    className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                      signUpRole === r ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-surface-elevated"
-                    }`}
-                  >
-                    {r === "startup_founder" ? "Startup" : "Gov Officer"}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <Button type="submit" size="lg" className="w-full" isLoading={loading === "email"}>
-            <Mail />
-            {mode === "sign-in" ? "Sign in with email" : "Create account"}
+          <Button type="submit" size="lg" className="w-full h-12 bg-[#449e48] hover:bg-[#3a863d] text-white text-base" disabled={loading}>
+            {loading ? "Signing in…" : "Submit"}
           </Button>
         </form>
 
-        <div className="my-6 flex items-center gap-3">
-          <div className="h-px flex-1 bg-border" />
-          <span className="text-xs text-muted-foreground">or continue with</span>
-          <div className="h-px flex-1 bg-border" />
+        <div className="mt-6 text-center text-sm">
+          <span className="text-muted-foreground">Don't Have Account? </span>
+          <Link href="/signup" className="text-blue-500 hover:underline">
+            Register Now
+          </Link>
         </div>
-
-        <div className="space-y-3">
-          <Button size="lg" variant="outline" className="w-full" onClick={() => signInWithOAuth("google")} isLoading={loading === "google"}>
-            <Chrome /> Continue with Google
-          </Button>
-          <Button size="lg" variant="outline" className="w-full" onClick={() => signInWithOAuth("github")} isLoading={loading === "github"}>
-            <Github /> Continue with GitHub
-          </Button>
-        </div>
-
-        {success && (
-          <p role="status" className="mt-5 rounded-lg border border-primary/30 bg-primary/10 p-3 text-sm text-foreground">
-            {success}
-          </p>
-        )}
-        {message && (
-          <p role="alert" className="mt-5 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
-            {message}
-          </p>
-        )}
-
-        <p className="mt-6 text-center text-xs text-muted-foreground">By continuing, you agree to use this workspace responsibly.</p>
       </section>
     </main>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense fallback={<main className="min-h-screen bg-background" />}>
-      <LoginForm />
-    </Suspense>
   );
 }

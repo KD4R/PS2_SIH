@@ -26,7 +26,7 @@ export function Hero() {
   return (
     <section className="relative min-h-screen flex flex-col justify-center overflow-hidden">
       {/* Animated sphere background */}
-      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[600px] h-[600px] lg:w-[800px] lg:h-[800px] opacity-30 pointer-events-none">
+      <div className="absolute right-12 lg:right-32 top-1/2 -translate-y-1/2 w-[600px] h-[600px] lg:w-[800px] lg:h-[800px] opacity-30 pointer-events-none">
         <AnimatedSphere />
       </div>
 
@@ -124,7 +124,7 @@ export function Hero() {
               className="px-8 h-14 text-base rounded-xl group"
               asChild
             >
-              <Link href="/login?next=/meeting/new">
+              <Link href="/signup">
                 Get started free
                 <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
               </Link>
