@@ -3,19 +3,34 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Menu, X } from "lucide-react";
 
 export default function GovDashboard() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("challenges");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   return (
-    <div className="flex h-screen bg-muted/20">
+    <div className="flex h-screen bg-muted/20 relative">
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+      
       {/* Sidebar */}
-      <aside className="w-64 bg-card border-r flex flex-col hidden md:flex">
-        <div className="p-6">
-          <Link href="/">
-            <h2 className="text-xl font-bold text-primary hover:opacity-80 transition-opacity">GovProcure</h2>
-          </Link>
-          <p className="text-xs text-muted-foreground">Department of Transport</p>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-card border-r flex flex-col transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="p-6 flex items-center justify-between">
+          <div>
+            <Link href="/">
+              <h2 className="text-xl font-bold text-primary hover:opacity-80 transition-opacity">GovProcure</h2>
+            </Link>
+            <p className="text-xs text-muted-foreground">Department of Transport</p>
+          </div>
+          <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(false)}>
+            <X className="w-5 h-5" />
+          </Button>
         </div>
         <nav className="flex-1 px-4 space-y-1">
           {[
@@ -39,8 +54,13 @@ export default function GovDashboard() {
 
       {/* Main content */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 border-b bg-card flex items-center justify-between px-8 shadow-sm z-10">
-          <h1 className="text-lg font-semibold">Department of Transport Dashboard</h1>
+        <header className="h-16 border-b bg-card flex items-center justify-between px-4 sm:px-8 shadow-sm z-10 gap-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)}>
+              <Menu className="w-5 h-5" />
+            </Button>
+            <h1 className="text-lg font-semibold">Department of Transport Dashboard</h1>
+          </div>
           <div className="relative flex items-center gap-4">
             <Button variant="outline" size="sm" className="hidden sm:flex">Notifications (2)</Button>
             <button 
@@ -235,14 +255,14 @@ export default function GovDashboard() {
             <div className="bg-card border rounded-xl overflow-hidden shadow-sm p-8">
               <h3 className="text-2xl font-semibold mb-6">Active Pilots</h3>
               <div className="space-y-4">
-                <div className="p-4 border rounded-lg flex items-center justify-between">
+                <div className="p-4 border rounded-lg flex items-center justify-between hover:shadow-md hover:-translate-y-1 hover:border-primary/50 transition-all duration-300 cursor-pointer">
                   <div>
                     <h4 className="font-semibold text-lg">Water Quality Sensor Network</h4>
                     <p className="text-sm text-muted-foreground">Startup: AquaTech Solutions • Location: Delhi Jal Board</p>
                   </div>
                   <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">Phase 2 Ongoing</span>
                 </div>
-                <div className="p-4 border rounded-lg flex items-center justify-between">
+                <div className="p-4 border rounded-lg flex items-center justify-between hover:shadow-md hover:-translate-y-1 hover:border-primary/50 transition-all duration-300 cursor-pointer">
                   <div>
                     <h4 className="font-semibold text-lg">Smart Traffic AI</h4>
                     <p className="text-sm text-muted-foreground">Startup: TrafficVision • Location: Mumbai Traffic Police</p>
@@ -256,7 +276,7 @@ export default function GovDashboard() {
           {activeTab === "templates" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {["RFP Template", "MOU Draft", "Pilot Agreement", "Evaluation Rubric"].map((doc, i) => (
-                <div key={i} className="bg-card p-6 border rounded-xl shadow-sm flex items-center justify-between hover:shadow-md transition-all duration-300">
+                <div key={i} className="bg-card p-6 border rounded-xl shadow-sm flex items-center justify-between hover:shadow-md hover:-translate-y-1 hover:border-primary/50 transition-all duration-300 cursor-pointer">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 bg-muted rounded flex items-center justify-center">📄</div>
                     <span className="font-medium">{doc}</span>

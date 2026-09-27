@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Menu, X } from "lucide-react";
 
 export default function AdminDashboard() {
   const [validationQueue, setValidationQueue] = useState([
@@ -15,6 +16,7 @@ export default function AdminDashboard() {
   ]);
 
   const [toastMessage, setToastMessage] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleAction = (type: string, id: number, list: string) => {
     if (list === "queue") {
@@ -27,13 +29,24 @@ export default function AdminDashboard() {
     setTimeout(() => setToastMessage(""), 3000);
   };
   return (
-    <div className="flex h-screen bg-muted/20">
+    <div className="flex h-screen bg-muted/20 relative">
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-slate-300 border-r border-slate-800 flex flex-col hidden md:flex">
-        <div className="p-6">
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 border-r border-slate-800 flex flex-col transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="p-6 flex items-center justify-between">
           <Link href="/">
             <h2 className="text-xl font-bold text-white tracking-tight hover:opacity-80 transition-opacity">GovProcure<span className="text-primary">Admin</span></h2>
           </Link>
+          <Button variant="ghost" size="icon" className="text-slate-300 hover:text-white hover:bg-slate-800" onClick={() => setIsSidebarOpen(false)}>
+            <X className="w-5 h-5" />
+          </Button>
         </div>
         <nav className="flex-1 px-4 space-y-1">
           {[
@@ -51,8 +64,13 @@ export default function AdminDashboard() {
       </aside>
 
       <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 border-b bg-card flex items-center justify-between px-8 shadow-sm z-10">
-          <h1 className="text-lg font-semibold">Program Administrator</h1>
+        <header className="h-16 border-b bg-card flex items-center justify-between px-4 sm:px-8 shadow-sm z-10 gap-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)}>
+              <Menu className="w-5 h-5" />
+            </Button>
+            <h1 className="text-lg font-semibold">Program Administrator</h1>
+          </div>
           <div className="flex items-center gap-4">
             <Button variant="outline" size="sm">Export Report</Button>
             <div className="h-9 w-9 rounded-full bg-slate-800 text-white font-medium flex items-center justify-center">AD</div>

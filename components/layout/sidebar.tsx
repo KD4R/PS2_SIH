@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Gavel, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Gavel, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import { secondaryNav } from "@/constants/nav";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -15,6 +15,8 @@ export interface SidebarProps {
   onToggleCollapsed?: () => void;
   className?: string;
   primaryNav?: any[];
+  isMobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 /**
@@ -23,30 +25,36 @@ export interface SidebarProps {
  * live badge counts are passed in by whichever layout mounts this — the
  * component itself never fetches data.
  */
-export function Sidebar({ badgeCounts, collapsed = false, onToggleCollapsed, className, primaryNav = [] }: SidebarProps) {
+export function Sidebar({ badgeCounts, collapsed = false, onToggleCollapsed, className, primaryNav = [], isMobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
 
   return (
     <aside
       className={cn(
-        "flex h-full flex-col border-r border-border bg-surface transition-[width] duration-200 ease-standard",
-        collapsed ? "w-[68px]" : "w-64",
+        "flex h-full flex-col border-r border-border bg-surface transition-transform duration-300 ease-in-out fixed inset-y-0 left-0 z-50 md:static md:translate-x-0",
+        collapsed ? "md:w-[68px]" : "w-64",
+        isMobileOpen ? "translate-x-0" : "-translate-x-full",
         className,
       )}
     >
-      <Link href="/" className={cn("flex h-16 items-center gap-2 px-4 hover:opacity-80 transition-opacity", collapsed && "justify-center px-0")}>
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <Gavel className="size-4" />
-        </span>
-        {!collapsed && <span className="font-display text-lg font-medium tracking-tight">GovProcure AI</span>}
-      </Link>
+      <div className="flex items-center justify-between px-4 h-16">
+        <Link href="/" className={cn("flex items-center gap-2 hover:opacity-80 transition-opacity", collapsed && "md:justify-center px-0")}>
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <Gavel className="size-4" />
+          </span>
+          {(!collapsed || isMobileOpen) && <span className="font-display text-lg font-medium tracking-tight">GovProcure AI</span>}
+        </Link>
+        <Button variant="ghost" size="icon" className="md:hidden" onClick={onMobileClose}>
+          <X className="size-4" />
+        </Button>
+      </div>
 
       <Separator />
 
       <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4">
         {primaryNav.map((section: any) => (
           <div key={section.label} className="space-y-1">
-            {!collapsed && (
+            {(!collapsed || isMobileOpen) && (
               <p className="px-2 text-[0.7rem] font-medium uppercase tracking-[0.12em] text-muted-foreground">
                 {section.label}
               </p>
@@ -69,8 +77,8 @@ export function Sidebar({ badgeCounts, collapsed = false, onToggleCollapsed, cla
                   )}
                 >
                   <Icon className="size-4 shrink-0" />
-                  {!collapsed && <span className="flex-1 truncate">{item.label}</span>}
-                  {!collapsed && Boolean(badgeCount) && (
+                  {(!collapsed || isMobileOpen) && <span className="flex-1 truncate">{item.label}</span>}
+                  {(!collapsed || isMobileOpen) && Boolean(badgeCount) && (
                     <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[0.65rem] font-semibold text-primary">
                       {badgeCount}
                     </span>
@@ -99,7 +107,7 @@ export function Sidebar({ badgeCounts, collapsed = false, onToggleCollapsed, cla
               )}
             >
               <Icon className="size-4 shrink-0" />
-              {!collapsed && <span>{item.label}</span>}
+              {(!collapsed || isMobileOpen) && <span>{item.label}</span>}
             </Link>
           );
         })}
@@ -108,7 +116,7 @@ export function Sidebar({ badgeCounts, collapsed = false, onToggleCollapsed, cla
           <Button
             variant="ghost"
             size={collapsed ? "icon" : "sm"}
-            className="w-full justify-center text-muted-foreground"
+            className="w-full justify-center text-muted-foreground hidden md:flex"
             onClick={onToggleCollapsed}
           >
             {collapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}

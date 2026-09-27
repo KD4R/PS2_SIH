@@ -21,20 +21,34 @@ function titleForPath(pathname: string) {
  */
 export function AppShell({ children, user, role }: { children: ReactNode; user: { name: string; avatarUrl?: string }; role?: string }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 
   const primaryNav = role === "department_officer" ? primaryNavOfficer : primaryNavFounder;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen overflow-hidden bg-background relative">
+      {mobileOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden" 
+          onClick={() => setMobileOpen(false)} 
+        />
+      )}
       <Sidebar
         collapsed={collapsed}
         onToggleCollapsed={() => setCollapsed((v) => !v)}
+        isMobileOpen={mobileOpen}
+        onMobileClose={() => setMobileOpen(false)}
         badgeCounts={{ activeMeetings: 2, pendingReports: 5 }}
         primaryNav={primaryNav}
       />
       <div className="flex min-w-0 flex-1 flex-col">
-        <Navbar title={titleForPath(pathname ?? "")} user={user} notificationCount={3} />
+        <Navbar 
+          title={titleForPath(pathname ?? "")} 
+          user={user} 
+          notificationCount={3} 
+          onToggleSidebar={() => setMobileOpen(true)}
+        />
         <main className="flex-1 overflow-y-auto">
           <div className="container max-w-none py-8">{children}</div>
         </main>

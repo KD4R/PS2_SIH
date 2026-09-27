@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Menu, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -26,15 +27,30 @@ export default function StartupDashboard() {
   const [appliedChallenges, setAppliedChallenges] = useState<number[]>([]);
   const [selectedChallenge, setSelectedChallenge] = useState<number | null>(null);
   const [isSubmittingApp, setIsSubmittingApp] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
   return (
-    <div className="flex h-screen bg-muted/20">
+    <div className="flex h-screen bg-muted/20 relative">
+      {/* Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+      
       {/* Sidebar */}
-      <aside className="w-64 bg-card border-r flex flex-col hidden md:flex">
-        <div className="p-6">
-          <Link href="/">
-            <h2 className="text-xl font-bold text-primary hover:opacity-80 transition-opacity">GovProcure</h2>
-          </Link>
-          <p className="text-xs text-muted-foreground">Startup Innovator</p>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-card border-r flex flex-col transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="p-6 flex items-center justify-between">
+          <div>
+            <Link href="/">
+              <h2 className="text-xl font-bold text-primary hover:opacity-80 transition-opacity">GovProcure</h2>
+            </Link>
+            <p className="text-xs text-muted-foreground">Startup Innovator</p>
+          </div>
+          <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(false)}>
+            <X className="w-5 h-5" />
+          </Button>
         </div>
         <nav className="flex-1 px-4 space-y-1">
           {[
@@ -56,8 +72,13 @@ export default function StartupDashboard() {
       </aside>
 
       <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 border-b bg-card flex items-center justify-between px-8 shadow-sm z-10">
-          <h1 className="text-lg font-semibold">Innovator Dashboard</h1>
+        <header className="h-16 border-b bg-card flex items-center justify-between px-4 sm:px-8 shadow-sm z-10 gap-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)}>
+              <Menu className="w-5 h-5" />
+            </Button>
+            <h1 className="text-lg font-semibold">Innovator Dashboard</h1>
+          </div>
           <div className="relative flex items-center gap-4">
             <span className="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-medium flex items-center gap-1 border border-green-200">
               <span className="w-2 h-2 rounded-full bg-green-600"></span> DPIIT Verified

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Search, Bell } from "lucide-react";
+import { Search, Bell, Menu } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AvatarFallback, AvatarImage, Avatar } from "@/components/ui/avatar";
@@ -14,6 +14,7 @@ export interface NavbarProps {
   notificationCount?: number;
   /** Extra actions rendered before the user menu (e.g. an "Invite" button, a stage toggle). */
   actions?: ReactNode;
+  onToggleSidebar?: () => void;
   className?: string;
 }
 
@@ -22,7 +23,7 @@ export interface NavbarProps {
  * area; stays glassy on scroll so long dashboard pages never fully hide it
  * behind opaque chrome.
  */
-export function Navbar({ title, user, notificationCount = 0, actions, className }: NavbarProps) {
+export function Navbar({ title, user, notificationCount = 0, actions, onToggleSidebar, className }: NavbarProps) {
   return (
     <header
       className={cn(
@@ -30,9 +31,14 @@ export function Navbar({ title, user, notificationCount = 0, actions, className 
         className,
       )}
     >
-      {title && (
-        <h1 className="hidden truncate font-display text-lg font-medium tracking-tight sm:block">{title}</h1>
-      )}
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" onClick={onToggleSidebar}>
+          <Menu className="size-5" />
+        </Button>
+        {title && (
+          <h1 className="hidden truncate font-display text-lg font-medium tracking-tight sm:block">{title}</h1>
+        )}
+      </div>
 
       <div className="ml-auto flex w-full max-w-sm items-center gap-3 sm:ml-0">
         <Input
