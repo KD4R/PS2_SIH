@@ -1,139 +1,68 @@
-# BoardroomAI
+# GovProcure AI
 
-An AI-powered virtual board of directors. Founders pitch; a panel of AI
-executives (CEO, CTO, CFO, CMO, VC, Legal, Research, Growth) debates the
-pitch live, votes, and produces an investment decision, SWOT, market
-research, financials, a pitch deck, a roadmap, a PRD and an executive
-report.
+Startup-friendly public procurement, end to end: a government department
+publishes an outcome-focused challenge, DPIIT-recognised startups bid,
+an AI-assisted evaluation recommends a winner, the winner runs a paid
+pilot with milestone-linked payments, and successful pilots are validated
+and scaled to more districts.
 
-**Full stack.** Groq runs the debate and writes every deliverable;
-Supabase handles auth and storage. See [`BACKEND.md`](./BACKEND.md) for how
-it fits together.
+Built for Problem Statement **SIH 26136**. The frontend is fully
+self-contained: it runs on sample data with **no backend, no API keys and
+no Supabase project required**.
 
-## Getting started
+## Quick start
 
 ```bash
 npm install
-```
-
-Then:
-
-1. Copy `.env.example` to `.env.local` and set `GROQ_API_KEY`
-   ([get one here](https://console.groq.com/keys)) plus your two
-   `NEXT_PUBLIC_SUPABASE_*` values.
-2. Run both migrations in `supabase/migrations/` in filename order.
-3. Enable the auth providers you want in Supabase, with `/auth/callback` as
-   the redirect.
-
-```bash
 npm run dev
 ```
 
-Visit `/` for the landing page. Sign in, then submit a pitch at
-`/meeting/new` — you'll be dropped into `/boardroom` and the board starts
-debating immediately.
+Open http://localhost:3000 and click **Get started**. Pick a role on the
+login screen (each role lands on its own dashboard):
 
-Check `/api/health` to confirm your setup: it reports `dbConfigured` and
-`aiConfigured` without requiring a session.
+| Role | Home | What you can do there |
+| --- | --- | --- |
+| Government (Delhi Jal Board) | `/dashboard/gov` | Browse the marketplace, run eligibility checks, publish a challenge (6-step wizard with templates), review proposals with the AI evaluation board, approve a pilot, verify evidence and release milestone payments, decide scale-up |
+| Startup (TechNova Innovations) | `/dashboard/startup` | Discover challenges, check eligibility, submit proposals, upload milestone evidence, track KPIs and payments |
+| Evaluator | `/dashboard/evaluator` | Score shortlisted proposals on weighted criteria |
+| Program Administrator | `/dashboard/admin` | Assign validators, complete compliance validation, review the audit log and access requests |
+
+A consistent walkthrough story ships in the seed data: the
+**Water Quality Sensor Network** challenge (₹10–15L, 6 months, detect
+contamination within 6 hours across 40 monitoring points), won by
+**TechNova Innovations**, now mid-pilot on `pil-water` with milestone M1
+paid, M2 evidence under review and M3 pending.
 
 ## Routes
 
-**Marketing** (`components/layout/marketing-navbar.tsx` + `footer.tsx`):
-- `/` — Landing (hero, how it works, executives, features, testimonials, pricing, FAQ, CTA)
-- `/pricing` — Standalone pricing + FAQ
-- `/about` — Mission, values, board roster
-- `/login`, `/auth/forgot-password`, `/auth/update-password` — Auth
-
-**App** (`components/layout/app-shell.tsx` — collapsible Sidebar + Navbar).
-Every route below requires a session; `proxy.ts` redirects to `/login`
-otherwise.
-
-- `/dashboard` — Metrics, score trend, recent meetings, activity feed
-- `/meeting/new` — Pitch submission, executive multi-select
-- `/boardroom` — Live session: seating grid, transcript, consensus. Reads `?meeting=<id>`, or falls back to your newest session
-- `/reports` — Searchable report list
-- `/reports/[id]` — Full report: executive summary, SWOT, radar chart, risk matrix, financial highlights
-- `/market-research` — Market sizing donut, growth trend, competitor matrix
-- `/financials` — KPI metrics, revenue/expense chart, cap table
-- `/startup-health` — Health score ring, dimension radar, flags
-- `/executives` — Full 8-agent roster, filterable, with profile dialog
-- `/pitch-deck` — Slide thumbnail rail + preview pane
-- `/prd-generator` — Section outline + generated spec content
-- `/kanban` — 4-column visual board
-- `/history` — Version timeline
-- `/settings` — Profile / Workspace / Notifications / Billing tabs
-
-## What a session produces
-
-Submitting a pitch creates a meeting, seats the executives you picked, and
-runs the debate two rounds per executive. When the debate ends the board
-votes and the model writes:
-
-- the **report** (`/reports/[id]`) — score, verdict, summary, SWOT,
-  dimension scores, risk matrix, financial highlights
-- the **deliverables** — market research, financial model, health snapshot,
-  PRD and pitch deck, which replace the seeded defaults on those screens
-
-A new account is seeded with placeholder workspace data so no screen is
-empty before the first session.
-
-## Folder structure
-
-```
-app/
-  (app)/                # Route group: every authenticated page, wrapped by AppShell
-  (marketing)/          # Route group: /pricing, /about
-  api/                  # Route handlers — see BACKEND.md
-  auth/                 # OAuth callback, sign-out
-  page.tsx              # Landing page ("/")
-  layout.tsx            # Root layout — fonts + providers only
-components/
-  ui/                   # Primitives
-  shared/               # Composed, cross-feature components
-  layout/               # Sidebar, Navbar, AppShell, MarketingNavbar, Footer
-features/<name>/        # One folder per route: components/, service.ts, types.ts
-hooks/                  # useMediaQuery, useReducedMotion, useDisclosure, useWorkspace
-lib/
-  ai/                   # Groq client, personas, debate policy, generators
-  server/               # Domain logic — the only thing route handlers call
-  supabase/             # Browser, server and proxy clients
-providers/              # ThemeProvider, AuthProvider, AppProviders
-constants/              # design-tokens.ts, nav.ts
-types/                  # api.ts (contracts), common.ts
-supabase/migrations/    # Schema + RLS
-proxy.ts                # Route protection (Next 16's middleware)
-```
-
-## Conventions
-
-- **Feature-first**: each route owns its `components/`, `service.ts` and
-  `types.ts`. Components call `service.ts`, which calls the API — never a
-  Supabase client directly.
-- **One AI file**: only `lib/ai/groq.ts` talks to a model. Only
-  `lib/supabase/*` constructs a Supabase client. Only `lib/server/*` is
-  called by a route handler.
-- **Contracts in one place**: `types/api.ts`. Change a field there and both
-  sides get a type error.
-- **Normalise model output** before it reaches a component. See the
-  `normalise*` helpers in `lib/ai/report-generator.ts`.
-- **No hardcoded colors/shadows/easing** — reach for a Tailwind token from
-  `tailwind.config.ts` or a constant from `lib/motion.ts` /
-  `constants/design-tokens.ts`. See `DESIGN_SYSTEM.md`.
-- **Accessibility is not optional** — every interactive primitive ships
-  focus-visible rings, ARIA wiring (via Radix where applicable), and
-  `prefers-reduced-motion` handling.
+| Route | Purpose |
+| --- | --- |
+| `/` | Landing page with the procurement pathway |
+| `/public` | Public portal: impact counters, scaled solutions, innovation directory |
+| `/dashboard/templates` | Reusable challenge, evaluation and pilot-agreement templates (preview, use, PDF) |
+| `/dashboard/gov/*` | Officer flows: marketplace, new-challenge wizard, proposal decision, pilot cockpit, scale-up |
+| `/dashboard/startup/*` | Founder flows: challenges, proposal submission, pilot progress, evidence upload |
+| `/dashboard/evaluator` | Weighted scoring for shortlisted proposals |
+| `/dashboard/admin` | Validation, access requests, audit log |
+| `/about` | How the pathway works |
 
 ## Scripts
 
 ```bash
-npm run dev        # Dev server
-npm run build      # Production build
-npm run lint       # ESLint
-npm run typecheck  # tsc --noEmit
+npm run dev          # start the dev server
+npm run build        # production build
+npm run typecheck    # tsc --noEmit
+npm run check:data   # guard: seed story consistency + banned-copy check
+npm run lint         # eslint
 ```
 
-## Known gaps
+## Sample data notice
 
-Listed at the end of [`BACKEND.md`](./BACKEND.md) — deck upload, billing
-actions, and kanban drag-and-drop persistence are the notable ones.
-# HackAgent
+All screens run on illustrative data stored in the browser. Statements
+about rules (GFR, DPIIT relaxations, GeM/CppP integrations) are mock copy —
+verify rule wording against current guidelines before real use. There is
+no live backend; every button produces a visible, local effect.
+
+The legacy AI board, API routes and server modules under `lib/server`,
+`lib/ai` and `app/api` are unused by these flows and are kept only as
+reference code.

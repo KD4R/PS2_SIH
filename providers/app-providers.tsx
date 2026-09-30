@@ -4,6 +4,7 @@ import { Suspense, type ReactNode } from "react";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/providers/auth-provider";
+import { DemoToaster } from "@/lib/demo/toast";
 
 /**
  * Single composition point for every provider the app needs. As real
@@ -16,7 +17,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <ThemeProvider>
       <TooltipProvider delayDuration={150}>
         <Suspense fallback={null}>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <DemoToaster>{children}</DemoToaster>
+          </AuthProvider>
         </Suspense>
       </TooltipProvider>
     </ThemeProvider>

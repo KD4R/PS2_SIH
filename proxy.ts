@@ -1,26 +1,19 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { DEMO_MODE } from "@/lib/demo/config";
 import { getSessionUser } from "@/lib/supabase/proxy";
 
 const protectedPrefixes = [
   "/dashboard",
-  "/boardroom",
-  "/meeting",
-  "/reports",
-  "/executives",
-  "/history",
-  "/settings",
-  "/kanban",
-  "/financials",
-  "/market-research",
-  "/startup-health",
-  "/prd-generator",
-  "/pitch-deck",
   "/challenges",
   "/proposals",
   "/pilot",
+  "/settings",
 ];
 
 export async function proxy(request: NextRequest) {
+  // Demo mode needs no backend: let every request through untouched.
+  if (DEMO_MODE) return NextResponse.next();
+
   const isProtected = protectedPrefixes.some(
     (prefix) => request.nextUrl.pathname === prefix || request.nextUrl.pathname.startsWith(`${prefix}/`),
   );

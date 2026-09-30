@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { DEMO_MODE } from "@/lib/demo/config";
+import { roleHome, isRole } from "@/lib/demo/roles";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { ensureProfile } from "@/lib/supabase/profile";
 
@@ -14,28 +16,22 @@ function AuthRedirectListener() {
   const redirected = useRef(false);
 
   useEffect(() => {
-    if (!isSupabaseConfigured() || !AUTH_PAGES.includes(pathname)) return;
+    if (DEMO_MODE || !isSupabaseConfigured() || !AUTH_PAGES.includes(pathname)) return;
 
     redirected.current = false;
     const supabase = createClient();
     const nextParam = searchParams.get("next");
 
-    function getDashboardUrl(user: any) {
+    function getDashboardUrl(user: { user_metadata?: { role?: string } }) {
       const role = user?.user_metadata?.role;
-      if (role === "startup" || role === "startup_founder") return "/dashboard/startup";
-      if (role === "gov" || role === "department_officer") return "/dashboard/gov";
-      if (role === "evaluator") return "/dashboard/evaluator";
-      if (role === "admin") return "/dashboard/admin";
-      
-      const match = typeof document !== 'undefined' ? document.cookie.match(/(?:^|; )demo_role=([^;]*)/) : null;
+      if (isRole(role)) return roleHome(role);
+
+      const match = typeof document !== "undefined" ? document.cookie.match(/(?:^|; )demo_role=([^;]*)/) : null;
       if (match) {
-        const demoRole = decodeURIComponent(match[1]);
-        if (demoRole === "startup" || demoRole === "startup_founder") return "/dashboard/startup";
-        if (demoRole === "gov" || demoRole === "department_officer") return "/dashboard/gov";
-        if (demoRole === "evaluator") return "/dashboard/evaluator";
-        if (demoRole === "admin") return "/dashboard/admin";
+        const demoRole = decodeURIComponent(match[1] ?? "");
+        if (isRole(demoRole)) return roleHome(demoRole);
       }
-      return "/dashboard";
+      return "/login";
     }
 
     async function handleSession() {

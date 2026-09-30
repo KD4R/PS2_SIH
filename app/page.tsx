@@ -10,7 +10,7 @@ import { CtaBanner } from "@/features/landing/components/cta-banner";
 export const metadata: Metadata = {
   title: "GovProcure AI — Public Procurement Mechanism",
   description:
-    "Eight AI executives debate your startup live, then hand you the investment decision, financials, and roadmap a real board takes weeks to produce.",
+    "From open challenge to pilot to payment — a startup-friendly public procurement pathway with AI-assisted evaluation, milestone-based payments, and audit-ready transparency.",
 };
 
 export default function LandingPage() {

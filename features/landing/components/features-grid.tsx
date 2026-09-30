@@ -58,34 +58,39 @@ function DeployVisual() {
 }
 
 function AIVisual() {
+  // Precomputed ray endpoints (center 100,80 · radius 50 · 60° steps).
+  // Literals instead of Math.cos/sin keep SSR and client markup identical —
+  // trig can differ by 1 ULP between engines, which breaks React hydration.
+  const rayNodes = [
+    { x: 150, y: 80 },
+    { x: 125, y: 123.3 },
+    { x: 75, y: 123.3 },
+    { x: 50, y: 80 },
+    { x: 75, y: 36.7 },
+    { x: 125, y: 36.7 },
+  ];
   return (
     <svg viewBox="0 0 200 160" className="w-full h-full">
       <circle cx="100" cy="80" r="12" fill="currentColor">
         <animate attributeName="r" values="12;14;12" dur="2s" repeatCount="indefinite" />
       </circle>
-      {[0, 1, 2, 3, 4, 5].map((i) => {
-        const angle = (i * 60) * (Math.PI / 180);
-        const radius = 50;
-        return (
-          <g key={i}>
-            <line
-              x1="100" y1="80"
-              x2={100 + Math.cos(angle) * radius}
-              y2={80 + Math.sin(angle) * radius}
-              stroke="currentColor" strokeWidth="1" opacity="0.3"
-            >
-              <animate attributeName="opacity" values="0.3;0.8;0.3" dur="2s" begin={`${i * 0.3}s`} repeatCount="indefinite" />
-            </line>
-            <circle
-              cx={100 + Math.cos(angle) * radius}
-              cy={80 + Math.sin(angle) * radius}
-              r="6" fill="none" stroke="currentColor" strokeWidth="2"
-            >
-              <animate attributeName="r" values="6;8;6" dur="2s" begin={`${i * 0.3}s`} repeatCount="indefinite" />
-            </circle>
-          </g>
-        );
-      })}
+      {rayNodes.map((node, i) => (
+        <g key={i}>
+          <line
+            x1="100" y1="80"
+            x2={node.x} y2={node.y}
+            stroke="currentColor" strokeWidth="1" opacity="0.3"
+          >
+            <animate attributeName="opacity" values="0.3;0.8;0.3" dur="2s" begin={`${i * 0.3}s`} repeatCount="indefinite" />
+          </line>
+          <circle
+            cx={node.x} cy={node.y}
+            r="6" fill="none" stroke="currentColor" strokeWidth="2"
+          >
+            <animate attributeName="r" values="6;8;6" dur="2s" begin={`${i * 0.3}s`} repeatCount="indefinite" />
+          </circle>
+        </g>
+      ))}
       <circle cx="100" cy="80" r="30" fill="none" stroke="currentColor" strokeWidth="1" opacity="0">
         <animate attributeName="r" values="20;60" dur="2s" repeatCount="indefinite" />
         <animate attributeName="opacity" values="0.5;0" dur="2s" repeatCount="indefinite" />
@@ -162,7 +167,7 @@ function FeatureCard({ feature, index }: { feature: (typeof features)[0]; index:
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setIsVisible(true); },
+      ([entry]) => { if (entry?.isIntersecting) setIsVisible(true); },
       { threshold: 0.2 }
     );
     if (cardRef.current) observer.observe(cardRef.current);
@@ -205,7 +210,7 @@ export function FeaturesGrid() {
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setIsVisible(true); },
+      ([entry]) => { if (entry?.isIntersecting) setIsVisible(true); },
       { threshold: 0.1 }
     );
     if (sectionRef.current) observer.observe(sectionRef.current);

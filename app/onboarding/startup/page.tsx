@@ -48,7 +48,7 @@ export default function StartupOnboardingPage() {
                 <Input id="dpiit" placeholder="e.g. DIPP12345" required />
                 <Button 
                   type="button" 
-                  variant={verified ? "default" : "outline"} 
+                  variant={verified ? "primary" : "outline"} 
                   onClick={() => {
                     if (!verified) {
                       // Fake loading for verification

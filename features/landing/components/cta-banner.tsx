@@ -13,7 +13,7 @@ export function CtaBanner() {
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setIsVisible(true); },
+      ([entry]) => { if (entry?.isIntersecting) setIsVisible(true); },
       { threshold: 0.2 }
     );
     if (sectionRef.current) observer.observe(sectionRef.current);
@@ -67,7 +67,7 @@ export function CtaBanner() {
                     asChild
                   >
                     <Link href="/signup">
-                      Get started free
+                      Get started
                       <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
                     </Link>
                   </Button>

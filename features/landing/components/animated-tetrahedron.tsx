@@ -36,13 +36,13 @@ export function AnimatedTetrahedron() {
     ];
 
     // Edges connecting vertices
-    const edges = [
+    const edges: Array<[number, number]> = [
       [0, 1], [0, 2], [0, 3],
       [1, 2], [2, 3], [3, 1],
     ];
 
     // Faces for filling with points
-    const faces = [
+    const faces: Array<[number, number, number]> = [
       [0, 1, 2],
       [0, 2, 3],
       [0, 3, 1],
@@ -83,8 +83,8 @@ export function AnimatedTetrahedron() {
 
       // Generate points along edges
       edges.forEach(([i, j]) => {
-        const v1 = vertices[i];
-        const v2 = vertices[j];
+        const v1 = vertices[i]!;
+        const v2 = vertices[j]!;
 
         for (let t = 0; t <= 1; t += 0.05) {
           let point = {
@@ -104,16 +104,16 @@ export function AnimatedTetrahedron() {
             x: centerX + point.x * scale,
             y: centerY - point.y * scale,
             z: point.z,
-            char: chars[Math.min(charIndex, chars.length - 1)],
+            char: chars[Math.min(charIndex, chars.length - 1)] ?? "·",
           });
         }
       });
 
       // Generate points on faces for a filled look
       faces.forEach(([i, j, k]) => {
-        const v1 = vertices[i];
-        const v2 = vertices[j];
-        const v3 = vertices[k];
+        const v1 = vertices[i]!;
+        const v2 = vertices[j]!;
+        const v3 = vertices[k]!;
 
         for (let u = 0; u <= 1; u += 0.12) {
           for (let v = 0; v <= 1 - u; v += 0.12) {
@@ -135,7 +135,7 @@ export function AnimatedTetrahedron() {
               x: centerX + point.x * scale,
               y: centerY - point.y * scale,
               z: point.z,
-              char: chars[Math.min(charIndex, chars.length - 1)],
+              char: chars[Math.min(charIndex, chars.length - 1)] ?? "·",
             });
           }
         }

@@ -6,11 +6,13 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DEMO_MODE } from "@/lib/demo/config";
+import { writeRoleCookie, type Role } from "@/lib/demo/roles";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 export default function SignupPage() {
   const router = useRouter();
-  const [role, setRole] = useState("startup");
+  const [role, setRole] = useState<Role>("startup");
   const [email, setEmail] = useState("");
   const [fullname, setFullname] = useState("");
   const [password, setPassword] = useState("");
@@ -30,7 +32,7 @@ export default function SignupPage() {
   };
 
   const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newRole = e.target.value;
+    const newRole = e.target.value as Role;
     setRole(newRole);
     if (newRole === "gov" && email && !email.endsWith(".gov.in") && !email.endsWith(".nic.in")) {
       setEmailWarning("Warning: Government emails usually end in .gov.in or .nic.in");
@@ -38,6 +40,13 @@ export default function SignupPage() {
       setEmailWarning("");
     }
   };
+
+  function destinationFor(selected: Role): string {
+    if (selected === "startup") return "/onboarding/startup";
+    if (selected === "gov") return "/onboarding/gov";
+    if (selected === "evaluator") return "/dashboard/evaluator";
+    return "/dashboard/admin";
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,6 +62,13 @@ export default function SignupPage() {
       return;
     }
 
+    writeRoleCookie(role);
+
+    if (DEMO_MODE) {
+      router.push(destinationFor(role));
+      return;
+    }
+
     if (!isSupabaseConfigured()) {
       setError("Authentication is not configured. Contact the administrator.");
       return;
@@ -61,15 +77,13 @@ export default function SignupPage() {
     setLoading(true);
     try {
       const supabase = createClient();
-      const dbRole = role === "startup" ? "startup_founder" : role === "gov" ? "department_officer" : "evaluator";
-
       const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             full_name: fullname,
-            role: dbRole,
+            role,
           },
         },
       });
@@ -80,18 +94,8 @@ export default function SignupPage() {
         return;
       }
 
-      // Set a demo_role cookie for the layout
-      document.cookie = `demo_role=${dbRole}; path=/; max-age=86400`;
-
-      // Route to onboarding or directly to dashboard
-      if (role === "startup") {
-        router.push("/onboarding/startup");
-      } else if (role === "gov") {
-        router.push("/onboarding/gov");
-      } else if (role === "evaluator") {
-        router.push("/dashboard/evaluator");
-      }
-    } catch (err) {
+      router.push(destinationFor(role));
+    } catch {
       setError("An unexpected error occurred. Please try again.");
       setLoading(false);
     }
@@ -99,15 +103,17 @@ export default function SignupPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <section className="glass w-full max-w-md rounded-2xl border border-border p-8 shadow-2xl bg-card">
+      <section className="glass w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-2xl">
         <div className="mb-4">
-          <Link href="/" className="text-sm text-primary hover:underline flex items-center gap-2 w-fit">
+          <Link href="/" className="flex w-fit items-center gap-2 text-sm text-primary hover:underline">
             &larr; Back to Home
           </Link>
         </div>
         <div className="mb-8 text-center">
           <h1 className="font-display text-2xl font-semibold">Create an Account</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Join the Startup-Friendly Public Procurement Platform.</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Join the startup-friendly public procurement platform.
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -115,7 +121,7 @@ export default function SignupPage() {
             <Label htmlFor="fullname">Full Name</Label>
             <Input
               id="fullname"
-              placeholder="John Doe"
+              placeholder="Full Name"
               value={fullname}
               onChange={(e) => setFullname(e.target.value)}
               required
@@ -141,12 +147,13 @@ export default function SignupPage() {
               id="role"
               value={role}
               onChange={handleRoleChange}
-              className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               required
             >
               <option value="startup">Startup / Innovator</option>
               <option value="gov">Government Officer / Department</option>
               <option value="evaluator">Evaluator / Domain Expert</option>
+              <option value="admin">Program Administrator / Validator</option>
             </select>
           </div>
 
@@ -177,9 +184,9 @@ export default function SignupPage() {
           </div>
 
           <div className="flex items-center space-x-2 pt-2">
-            <input type="checkbox" id="terms" required className="rounded border-gray-300 h-4 w-4" />
+            <input type="checkbox" id="terms" required className="h-4 w-4 rounded border-gray-300" />
             <Label htmlFor="terms" className="text-sm font-normal text-muted-foreground">
-              I agree to the Terms & Privacy Policy
+              I agree to the Terms &amp; Privacy Policy
             </Label>
           </div>
 
@@ -189,14 +196,14 @@ export default function SignupPage() {
             </p>
           )}
 
-          <Button type="submit" size="lg" className="w-full mt-4" disabled={loading}>
+          <Button type="submit" size="lg" className="mt-4 w-full" disabled={loading}>
             {loading ? "Creating account…" : "Create account"}
           </Button>
         </form>
 
         <div className="mt-6 text-center text-sm">
           <span className="text-muted-foreground">Already have an account? </span>
-          <Link href="/login" className="text-primary hover:underline font-medium">
+          <Link href="/login" className="font-medium text-primary hover:underline">
             Log in
           </Link>
         </div>

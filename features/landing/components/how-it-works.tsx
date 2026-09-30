@@ -5,46 +5,47 @@ import { useEffect, useRef, useState } from "react";
 const steps = [
   {
     number: "I",
-    title: "Publish your tender",
+    title: "Publish a challenge",
     description:
-      "Upload tender requirements and evaluation criteria. Our AI structures them into standardized, machine-readable formats instantly.",
+      "Departments publish outcome-based challenges — not specifications. Startups discover them on a live demand radar and eligibility relaxations for DPIIT startups apply automatically.",
     code: `import { govprocure } from '@govprocure/core'
 
-govprocure.tender.create({
-  title: 'Road Construction Phase II',
-  department: 'PWD',
-  budget: '₹12.5 Cr',
-  criteria: ['quality', 'cost', 'timeline']
+govprocure.challenge.publish({
+  title: 'Water Quality Sensor Network',
+  department: 'Delhi Jal Board',
+  budget: '₹10L – ₹15L',
+  outcome: 'Detect contamination < 6 hours',
+  startupRelaxations: true
 })`,
   },
   {
     number: "II",
-    title: "AI evaluates bids",
+    title: "Evaluate & award a pilot",
     description:
-      "Bids are automatically scored against criteria. The AI detects anomalies, verifies documents, and ranks vendors objectively.",
-    code: `const results = await govprocure.evaluate({
-  tender: 'RCP-II-2025',
-  bids: allSubmissions,
-  checks: [
-    'price-anomaly',
-    'document-verify',
-    'cartel-detect'
-  ]
-})`,
+      "Proposals are screened for eligibility, scored by an AI evaluation board plus independent assessors, and the winner is approved for a milestone-based pilot agreement.",
+    code: `const board = await govprocure.evaluate({
+  challenge: 'WQSN-2026',
+  proposals: allSubmissions,
+  board: ['procurement', 'legal', 'technical',
+          'finance', 'cyber-risk']
+})
+
+govprocure.approveForPilot(board.topRanked)
+// Pilot contract + payment schedule created ✓`,
   },
   {
     number: "III",
-    title: "Award with confidence",
+    title: "Pay on outcomes, then scale",
     description:
-      "Review AI recommendations, approve or override with documented reasoning. The entire process is audit-ready from day one.",
-    code: `govprocure.award({
-  tender: 'RCP-II-2025',
-  vendor: results.topRanked,
-  audit: true
-})
+      "Payments release only against verified milestone evidence. An independent validator checks the KPIs before the department decides: scale to more districts or convert to regular procurement.",
+    code: `govprocure.milestones.verify({ pilot: 'pil-water' })
+// M1 Hardware setup      → ₹3.6L released ✓
+// M2 Data dashboard      → evidence under review
+// M3 Final report        → pending
 
+govprocure.validate(pilot).then(decideScale)
 // Audit trail generated ✓
-// Citizen portal updated ✓`,
+// Public portal updated ✓`,
   },
 ];
 
@@ -55,7 +56,7 @@ export function HowItWorks() {
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setIsVisible(true); },
+      ([entry]) => { if (entry?.isIntersecting) setIsVisible(true); },
       { threshold: 0.1 }
     );
     if (sectionRef.current) observer.observe(sectionRef.current);
@@ -160,7 +161,7 @@ export function HowItWorks() {
               {/* Code content */}
               <div className="p-8 font-mono text-sm min-h-[280px]">
                 <pre className="text-background/70">
-                  {steps[activeStep].code.split("\n").map((line, lineIndex) => (
+                  {(steps[activeStep] ?? { code: "" }).code.split("\n").map((line, lineIndex) => (
                     <div
                       key={`${activeStep}-${lineIndex}`}
                       className="leading-loose hiw-code-line-reveal"

@@ -1,188 +1,251 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
+import { ClipboardCheck, FileStack, ScrollText, ShieldCheck, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { DashboardShell, type ShellNavItem } from "@/components/demo/dashboard-shell";
+import { StatusPill } from "@/components/demo/status-pill";
+import { AuditTimeline } from "@/components/demo/audit-timeline";
+import { EmptyState } from "@/components/shared/empty-state";
+import { useDemoStore } from "@/lib/demo/store";
+import { seed } from "@/lib/demo/store";
+import { useToast } from "@/lib/demo/toast";
+import { fmtDate, fmtINR } from "@/lib/demo/format";
+
+const NAV: ShellNavItem[] = [
+  { key: "overview", label: "nav.overview", icon: ShieldCheck },
+  { key: "validation", label: "nav.validation", icon: ClipboardCheck },
+  { key: "access", label: "nav.access", icon: UserPlus },
+  { key: "audit", label: "nav.audit", icon: ScrollText },
+  { key: "templates", label: "nav.templates", icon: FileStack, href: "/dashboard/templates" },
+];
+
+type TabKey = "overview" | "validation" | "access" | "audit";
+
+const VALIDATORS = ["Tata Consultancy Services — Quality Council", "IIT Delhi — Centre for Technology", "Bureau Veritas India", "Dr. Meera Krishnan (Independent)"];
 
 export default function AdminDashboard() {
-  const [validationQueue, setValidationQueue] = useState([
-    { id: 1, name: "Traffic AI - Dept of Transport", status: "Nearing scale decision" },
-    { id: 2, name: "Waste Mgmt - Urban Affairs", status: "Pilot completed" }
-  ]);
+  const { toast } = useToast();
+  const [tab, setTab] = useState<TabKey>("overview");
+
+  const hydrated = useDemoStore((s) => s.hydrated);
+  const pilots = useDemoStore((s) => s.pilots);
+  const challenges = useDemoStore((s) => s.challenges);
+  const startups = useDemoStore((s) => s.startups);
+  const auditLog = useDemoStore((s) => s.auditLog);
+  const assignValidator = useDemoStore((s) => s.assignValidator);
+  const completeValidation = useDemoStore((s) => s.completeValidation);
+
+  const queue = useMemo(
+    () => pilots.filter((p) => ["Pilot Completed", "In Validation", "Validated"].includes(p.status) || p.validation?.status === "Queued" || p.validation?.status === "Assigned"),
+    [pilots],
+  );
 
   const [accessRequests, setAccessRequests] = useState([
-    { id: 1, name: "Rajesh Kumar (Gov Officer)", details: "Health Ministry, verified domain" }
+    { id: "ar-1", name: "Rajesh Kumar (Department Officer)", details: "Health Ministry, MP — verified domain email" },
+    { id: "ar-2", name: "Kavita Rao (Evaluator)", details: "NIT Trichy — empanelled technical assessor" },
   ]);
 
-  const [toastMessage, setToastMessage] = useState("");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  const handleAction = (type: string, id: number, list: string) => {
-    if (list === "queue") {
-      setValidationQueue(validationQueue.filter(item => item.id !== id));
-      setToastMessage(`Validator assigned successfully.`);
-    } else {
-      setAccessRequests(accessRequests.filter(item => item.id !== id));
-      setToastMessage(`User ${type}d successfully.`);
-    }
-    setTimeout(() => setToastMessage(""), 3000);
-  };
   return (
-    <div className="flex h-screen bg-muted/20 relative">
-      {/* Mobile Sidebar Overlay */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 border-r border-slate-800 flex flex-col transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="p-6 flex items-center justify-between">
-          <Link href="/">
-            <h2 className="text-xl font-bold text-white tracking-tight hover:opacity-80 transition-opacity">GovProcure<span className="text-primary">Admin</span></h2>
-          </Link>
-          <Button variant="ghost" size="icon" className="text-slate-300 hover:text-white hover:bg-slate-800" onClick={() => setIsSidebarOpen(false)}>
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
-        <nav className="flex-1 px-4 space-y-1">
-          {[
-            { label: "Cross-Dept Analytics", href: "/dashboard/admin" },
-            { label: "Geospatial Map", href: "/dashboard/admin" },
-            { label: "Validation Queue", href: "/dashboard/admin" },
-            { label: "User Management", href: "/dashboard/admin" },
-            { label: "System Logs", href: "/dashboard/admin" },
-          ].map((item, idx) => (
-            <Link key={item.label} href={item.href} className={`block px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${idx === 0 ? "bg-primary/20 text-white" : "hover:bg-slate-800 hover:text-white"}`}>
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      </aside>
-
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 border-b bg-card flex items-center justify-between px-4 sm:px-8 shadow-sm z-10 gap-4">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)}>
-              <Menu className="w-5 h-5" />
-            </Button>
-            <h1 className="text-lg font-semibold">Program Administrator</h1>
+    <DashboardShell
+      role="admin"
+      userName={seed.CURRENT_USER.admin.name}
+      userSubtitle={`${seed.CURRENT_USER.admin.title}, ${seed.CURRENT_USER.admin.department}`}
+      nav={NAV}
+      activeKey={tab}
+      onTabSelect={(k) => setTab(k as TabKey)}
+      title="Programme administration"
+    >
+      <div className="mx-auto max-w-6xl space-y-6">
+        {!hydrated ? (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {[0, 1, 2].map((i) => <div key={i} className="h-28 animate-pulse rounded-xl bg-muted" />)}
           </div>
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="sm">Export Report</Button>
-            <div className="h-9 w-9 rounded-full bg-slate-800 text-white font-medium flex items-center justify-center">AD</div>
-          </div>
-        </header>
-
-        <div className="flex-1 overflow-auto p-4 sm:p-8 space-y-8 relative">
-          {toastMessage && (
-            <div className="absolute top-4 right-4 bg-slate-800 text-white text-sm px-4 py-2 rounded-md font-medium shadow-lg animate-in fade-in slide-in-from-top-2 z-50">
-              {toastMessage}
-            </div>
-          )}
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Analytics Summary */}
-            <div className="bg-card p-6 rounded-xl border shadow-sm">
-              <p className="text-sm font-medium text-muted-foreground">System-wide Pilot Success</p>
-              <div className="flex items-end gap-3 mt-2">
-                <p className="text-4xl font-display font-bold">68%</p>
-                <span className="text-green-600 text-sm font-medium mb-1">+12% vs last yr</span>
-              </div>
-            </div>
-            <div className="bg-card p-6 rounded-xl border shadow-sm">
-              <p className="text-sm font-medium text-muted-foreground">Avg Time-to-Pilot</p>
-              <div className="flex items-end gap-3 mt-2">
-                <p className="text-4xl font-display font-bold">42<span className="text-2xl text-muted-foreground ml-1">days</span></p>
-                <span className="text-green-600 text-sm font-medium mb-1">-8 days</span>
-              </div>
-            </div>
-            <div className="bg-card p-6 rounded-xl border shadow-sm">
-              <p className="text-sm font-medium text-muted-foreground">Est. Procurement Savings</p>
-              <div className="flex items-end gap-3 mt-2">
-                <p className="text-4xl font-display font-bold text-green-700">₹4.2Cr</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Map Placeholder */}
-            <div className="bg-card border rounded-xl shadow-sm flex flex-col">
-              <div className="px-6 py-4 border-b bg-muted/20">
-                <h3 className="font-semibold">Geospatial Pilot Distribution</h3>
-              </div>
-              <div className="flex-1 p-6 flex flex-col items-center justify-center bg-muted/10 min-h-[300px] relative">
-                {/* Mock map UI */}
-                <div className="w-full h-full border-2 border-dashed border-border rounded-lg flex items-center justify-center relative overflow-hidden bg-slate-50">
-                  <div className="absolute top-1/4 left-1/4 h-4 w-4 bg-green-500 rounded-full shadow-[0_0_15px_rgba(34,197,94,0.6)]"></div>
-                  <div className="absolute top-1/2 left-1/2 h-4 w-4 bg-amber-500 rounded-full shadow-[0_0_15px_rgba(245,158,11,0.6)]"></div>
-                  <div className="absolute bottom-1/3 right-1/3 h-4 w-4 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.6)]"></div>
-                  <span className="text-muted-foreground font-medium">Interactive Map View</span>
+        ) : (
+          <>
+            {/* Stats */}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              {[
+                { label: "System-wide pilot success", value: "68%", delta: "+12% vs last year" },
+                { label: "Avg time-to-pilot", value: "42 days", delta: "-8 days vs last year" },
+                { label: "Value in active pilots", value: fmtINR(pilots.filter((p) => p.status !== "Closed").reduce((s, p) => s + p.contractValue, 0)), delta: "across departments" },
+              ].map((m) => (
+                <div key={m.label} className="rounded-xl border border-border bg-card p-6">
+                  <p className="text-sm font-medium text-muted-foreground">{m.label}</p>
+                  <p className="mt-2 text-3xl font-bold">{m.value}</p>
+                  <p className="mt-1 text-xs font-medium text-green-600">{m.delta}</p>
                 </div>
-                <div className="flex gap-4 mt-4 text-xs font-medium">
-                  <span className="flex items-center gap-1"><span className="h-3 w-3 bg-blue-500 rounded-full"></span> Piloting</span>
-                  <span className="flex items-center gap-1"><span className="h-3 w-3 bg-green-500 rounded-full"></span> Scaled</span>
-                  <span className="flex items-center gap-1"><span className="h-3 w-3 bg-amber-500 rounded-full"></span> Stalled</span>
-                </div>
-              </div>
+              ))}
             </div>
 
-            <div className="space-y-8">
-              {/* Validation Queue */}
-              <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b bg-muted/20 flex justify-between items-center">
-                  <h3 className="font-semibold">Independent Validation Queue</h3>
-                  <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">{validationQueue.length} Pending</span>
+            {tab === "overview" && (
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <section className="rounded-xl border border-border bg-card">
+                  <div className="border-b border-border px-5 py-3.5">
+                    <h3 className="font-semibold">Validation queue snapshot</h3>
+                  </div>
+                  <div className="divide-y divide-border">
+                    {queue.slice(0, 3).map((p) => (
+                      <div key={p.id} className="flex items-center justify-between gap-3 px-5 py-3.5">
+                        <div>
+                          <p className="text-sm font-medium">{challenges.find((c) => c.id === p.challengeId)?.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {startups.find((s) => s.id === p.startupId)?.name} · {p.validation?.status ?? "Not queued"}
+                          </p>
+                        </div>
+                        <StatusPill status={p.status} />
+                      </div>
+                    ))}
+                    {queue.length === 0 && <div className="p-6"><EmptyState compact title="Queue empty" description="Completed pilots appear here for validation." /></div>}
+                  </div>
+                </section>
+
+                <section className="rounded-xl border border-border bg-card">
+                  <div className="border-b border-border px-5 py-3.5">
+                    <h3 className="font-semibold">Recent platform activity</h3>
+                  </div>
+                  <div className="p-5">
+                    <AuditTimeline events={auditLog} limit={6} />
+                  </div>
+                </section>
+              </div>
+            )}
+
+            {tab === "validation" && (
+              <section className="rounded-xl border border-border bg-card">
+                <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
+                  <h3 className="font-semibold">Independent validation queue</h3>
+                  <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">{queue.length} pilots</span>
                 </div>
                 <div className="divide-y divide-border">
-                  {validationQueue.length === 0 ? (
-                    <div className="p-8 text-center text-sm text-muted-foreground">Queue is empty</div>
-                  ) : (
-                    validationQueue.map(item => (
-                      <div key={item.id} className="p-4 flex justify-between items-center hover:bg-muted/30">
-                        <div>
-                          <p className="font-medium text-sm">{item.name}</p>
-                          <p className="text-xs text-muted-foreground mt-1">{item.status}</p>
-                        </div>
-                        <Button size="sm" onClick={() => handleAction("assign", item.id, "queue")}>Assign Validator</Button>
-                      </div>
-                    ))
+                  {queue.length === 0 && (
+                    <div className="p-10"><EmptyState icon={ClipboardCheck} title="Queue is empty" description="When a department marks a pilot completed it lands here." /></div>
                   )}
-                </div>
-              </div>
+                  {queue.map((p) => (
+                    <div key={p.id} className="px-5 py-4">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <p className="font-medium">{challenges.find((c) => c.id === p.challengeId)?.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {startups.find((s) => s.id === p.startupId)?.name} · {fmtINR(p.contractValue)} · completed {fmtDate(p.endDate)}
+                          </p>
+                        </div>
+                        <StatusPill status={p.status} />
+                      </div>
 
-              {/* User Management */}
-              <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b bg-muted/20 flex justify-between items-center">
-                  <h3 className="font-semibold">User Access Requests</h3>
+                      <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/20 p-3">
+                        {p.validation?.status === "Assigned" || p.validation?.status === "Completed" ? (
+                          <>
+                            <span className="text-xs text-muted-foreground">
+                              Validator: <strong className="text-foreground">{p.validation.validator}</strong> · status {p.validation.status}
+                            </span>
+                            {p.validation.status === "Assigned" && (
+                              <Button
+                                size="sm"
+                                className="ml-auto"
+                                onClick={() => {
+                                  completeValidation(
+                                    p.id,
+                                    "Pass with conditions",
+                                    [
+                                      "Detection-time KPI met with margin (7h vs 6h target) — sustained monitoring recommended through monsoon season.",
+                                      "Sensor uptime exceeded target (94% vs 90%); two gateway reinforcement sites still pending in Zone 4.",
+                                      "False alarm rate within limit (3.2% vs 5%); recommend quarterly threshold re-tuning.",
+                                    ],
+                                  );
+                                  toast("Validation completed — scale-up decision unlocked for the department", "success");
+                                }}
+                              >
+                                Record validation result
+                              </Button>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-xs text-muted-foreground">Assign an independent validator:</span>
+                            <select
+                              className="h-8 rounded-md border border-border bg-background px-2 text-xs outline-none focus:ring-2 focus:ring-primary/40"
+                              defaultValue={VALIDATORS[0]}
+                              onChange={(e) => {
+                                assignValidator(p.id, e.target.value);
+                                toast(`Validator assigned: ${e.target.value}`, "success");
+                              }}
+                            >
+                              {VALIDATORS.map((v) => <option key={v}>{v}</option>)}
+                            </select>
+                            <Button
+                              size="sm"
+                              className="ml-auto"
+                              onClick={() => {
+                                assignValidator(p.id, VALIDATORS[0] ?? "Independent validator");
+                                toast("Validator assigned — department notified", "success");
+                              }}
+                            >
+                              Assign validator
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {tab === "access" && (
+              <section className="rounded-xl border border-border bg-card">
+                <div className="border-b border-border px-5 py-3.5">
+                  <h3 className="font-semibold">User access requests</h3>
                 </div>
                 <div className="divide-y divide-border">
-                  {accessRequests.length === 0 ? (
-                    <div className="p-8 text-center text-sm text-muted-foreground">No pending requests</div>
-                  ) : (
-                    accessRequests.map(item => (
-                      <div key={item.id} className="p-4 flex justify-between items-center hover:bg-muted/30">
-                        <div>
-                          <p className="font-medium text-sm">{item.name}</p>
-                          <p className="text-xs text-muted-foreground mt-1">{item.details}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleAction("reject", item.id, "access")}>Reject</Button>
-                          <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleAction("approve", item.id, "access")}>Approve</Button>
-                        </div>
-                      </div>
-                    ))
+                  {accessRequests.length === 0 && (
+                    <div className="p-10"><EmptyState icon={UserPlus} title="No pending requests" description="New department and evaluator accounts will request access here." /></div>
                   )}
+                  {accessRequests.map((r) => (
+                    <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+                      <div>
+                        <p className="text-sm font-medium">{r.name}</p>
+                        <p className="text-xs text-muted-foreground">{r.details}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-red-200 text-red-600 hover:bg-red-50"
+                          onClick={() => {
+                            setAccessRequests((prev) => prev.filter((x) => x.id !== r.id));
+                            toast(`Access request from ${r.name} rejected`, "warning");
+                          }}
+                        >
+                          Reject
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                          onClick={() => {
+                            setAccessRequests((prev) => prev.filter((x) => x.id !== r.id));
+                            toast(`${r.name} approved`, "success");
+                          }}
+                        >
+                          Approve
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            </div>
-            
-          </div>
-        </div>
-      </main>
-    </div>
+              </section>
+            )}
+
+            {tab === "audit" && (
+              <section className="rounded-xl border border-border bg-card p-6">
+                <h3 className="mb-4 font-semibold">Platform audit log</h3>
+                <AuditTimeline events={auditLog} searchable />
+              </section>
+            )}
+          </>
+        )}
+      </div>
+    </DashboardShell>
   );
 }

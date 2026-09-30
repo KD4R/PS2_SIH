@@ -84,7 +84,7 @@ export function Hero() {
                   key={wordIndex}
                   className="inline-flex text-primary"
                 >
-                  {words[wordIndex].split("").map((char, i) => (
+                  {(words[wordIndex] ?? "").split("").map((char, i) => (
                     <span
                       key={`${wordIndex}-${i}`}
                       className="inline-block animate-char-in"
@@ -125,7 +125,7 @@ export function Hero() {
               asChild
             >
               <Link href="/signup">
-                Get started free
+                Get started
                 <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>

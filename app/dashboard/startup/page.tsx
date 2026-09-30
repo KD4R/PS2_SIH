@@ -1,398 +1,426 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
+  BadgeCheck,
+  BarChart3,
+  FileStack,
+  Gauge,
+  IndianRupee,
+  Radar,
+  Search,
+  UserRound,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { DashboardShell, type ShellNavItem } from "@/components/demo/dashboard-shell";
+import { StatusPill } from "@/components/demo/status-pill";
+import { EmptyState } from "@/components/shared/empty-state";
+import { IntegrationBadge } from "@/components/demo/integration-badge";
+import { useDemoStore } from "@/lib/demo/store";
+import { seed } from "@/lib/demo/store";
+import { fmtDate, fmtINR } from "@/lib/demo/format";
 
-const MOCK_CHALLENGES = [
-  { title: "Smart City Waste Monitoring", dept: "Urban Affairs, Delhi", tag: "CivicTech", budget: "₹10L - ₹15L", fit: "You qualify" },
-  { title: "Rural Health Kiosks Data Integration", dept: "Health Ministry, MP", tag: "HealthTech", budget: "₹5L - ₹8L", fit: "Check requirements" }
+const NAV: ShellNavItem[] = [
+  { key: "demand", label: "nav.demand", icon: Radar },
+  { key: "applications", label: "nav.applications", icon: FileStack },
+  { key: "pilots", label: "nav.payments", icon: Gauge },
+  { key: "payments", label: "Payments", icon: IndianRupee },
+  { key: "profile", label: "nav.profile", icon: UserRound },
+  { key: "templates", label: "nav.templates", icon: BarChart3, href: "/dashboard/templates" },
 ];
 
+type TabKey = "demand" | "applications" | "pilots" | "payments" | "profile";
+
 export default function StartupDashboard() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("discover");
-  const [appliedChallenges, setAppliedChallenges] = useState<number[]>([]);
-  const [selectedChallenge, setSelectedChallenge] = useState<number | null>(null);
-  const [isSubmittingApp, setIsSubmittingApp] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
+  const [tab, setTab] = useState<TabKey>("demand");
+
+  const hydrated = useDemoStore((s) => s.hydrated);
+  const challenges = useDemoStore((s) => s.challenges);
+  const proposals = useDemoStore((s) => s.proposals);
+  const pilots = useDemoStore((s) => s.pilots);
+  const me = seed.CURRENT_STARTUP;
+
+  const myProposals = useMemo(() => proposals.filter((p) => p.startupId === me.id), [proposals, me.id]);
+  const myPilots = useMemo(() => pilots.filter((p) => p.startupId === me.id), [pilots, me.id]);
+  const openChallenges = useMemo(() => challenges.filter((c) => c.status === "Open"), [challenges]);
+
+  // F14 filters
+  const [fDomain, setFDomain] = useState("All");
+  const [fDept, setFDept] = useState("All");
+  const [fBand, setFBand] = useState("All");
+  const domains = useMemo(() => ["All", ...Array.from(new Set(challenges.map((c) => c.domain)))], [challenges]);
+  const depts = useMemo(() => ["All", ...Array.from(new Set(challenges.map((c) => c.department)))], [challenges]);
+
+  const filtered = useMemo(
+    () =>
+      openChallenges.filter((c) => {
+        if (fDomain !== "All" && c.domain !== fDomain) return false;
+        if (fDept !== "All" && c.department !== fDept) return false;
+        if (fBand !== "≤10L" && c.budgetMax > 1_000_000 && fBand === "≤10L") return false;
+        if (fBand === "10–20L" && (c.budgetMax < 1_000_000 || c.budgetMin > 2_000_000)) return false;
+        if (fBand === "20L+" && c.budgetMax < 2_000_000) return false;
+        return true;
+      }),
+    [openChallenges, fDomain, fDept, fBand],
+  );
+
+  const demandByDept = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const c of openChallenges) {
+      map.set(c.department, (map.get(c.department) ?? 0) + c.budgetMax);
+    }
+    return Array.from(map.entries()).map(([dept, value]) => ({ dept, lakh: Math.round(value / 100_000) }));
+  }, [openChallenges]);
+
+  const myPayments = myPilots.flatMap((p) =>
+    p.milestones.map((m) => ({ ...m, pilotId: p.id, pilotTitle: challenges.find((c) => c.id === p.challengeId)?.title ?? "Pilot" })),
+  );
+  const totalReceived = myPayments.filter((m) => m.status === "Payment Released").reduce((s, m) => s + m.amount, 0);
+
   return (
-    <div className="flex h-screen bg-muted/20 relative">
-      {/* Sidebar Overlay */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-      
-      {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-card border-r flex flex-col transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="p-6 flex items-center justify-between">
-          <div>
-            <Link href="/">
-              <h2 className="text-xl font-bold text-primary hover:opacity-80 transition-opacity">GovProcure</h2>
-            </Link>
-            <p className="text-xs text-muted-foreground">Startup Innovator</p>
-          </div>
-          <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(false)}>
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
-        <nav className="flex-1 px-4 space-y-1">
-          {[
-            { id: "discover", label: "Discover challenges" },
-            { id: "applications", label: "My applications" },
-            { id: "pilots", label: "Active pilots" },
-            { id: "payments", label: "Payments" },
-            { id: "profile", label: "Profile & credibility" },
-          ].map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`w-full text-left px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200 hover:translate-x-1 ${activeTab === item.id ? "bg-primary/10 text-primary shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </nav>
-      </aside>
-
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 border-b bg-card flex items-center justify-between px-4 sm:px-8 shadow-sm z-10 gap-4">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)}>
-              <Menu className="w-5 h-5" />
-            </Button>
-            <h1 className="text-lg font-semibold">Innovator Dashboard</h1>
-          </div>
-          <div className="relative flex items-center gap-4">
-            <span className="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-medium flex items-center gap-1 border border-green-200">
-              <span className="w-2 h-2 rounded-full bg-green-600"></span> DPIIT Verified
-            </span>
-            <button 
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              title="Profile Menu" 
-              className="h-9 w-9 rounded-full bg-indigo-100 text-indigo-700 font-medium flex items-center justify-center border border-indigo-300 hover:bg-indigo-200 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-            >
-              ST
-            </button>
-            {isMenuOpen && (
-              <div className="absolute right-0 top-12 w-48 bg-card border rounded-md shadow-lg py-1 z-50">
-                <div className="px-4 py-2 border-b">
-                  <p className="text-sm font-medium">TechNova Inc.</p>
-                  <p className="text-xs text-muted-foreground">Startup Innovator</p>
-                </div>
-                <Link href="/dashboard/startup/settings" className="block px-4 py-2 text-sm hover:bg-muted transition-colors">
-                  Settings
-                </Link>
-                <form action="/auth/signout" method="POST">
-                  <button type="submit" className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors">
-                    Log out
-                  </button>
-                </form>
-              </div>
-            )}
-          </div>
-        </header>
-
-        <div className="flex-1 overflow-auto p-4 sm:p-8 space-y-8">
-          {/* Summary cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { label: "Matches (My sector)", value: "14" },
-              { label: "Apps in review", value: "2" },
-              { label: "Active pilots", value: "1" },
-              { label: "Total received", value: "₹2.5L" },
-            ].map((stat, i) => (
-              <div key={i} className="bg-card p-6 rounded-xl border shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-primary/30 transition-all duration-300 cursor-default">
-                <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-                <p className="text-3xl font-display font-bold mt-2 text-primary">{stat.value}</p>
-              </div>
+    <DashboardShell
+      role="startup"
+      userName={me.name}
+      userSubtitle={me.founder}
+      nav={NAV}
+      activeKey={tab}
+      onTabSelect={(k) => setTab(k as TabKey)}
+      title="Innovator dashboard"
+    >
+      <div className="mx-auto max-w-6xl space-y-6">
+        {!hydrated ? (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="h-24 animate-pulse rounded-xl bg-muted" />
             ))}
           </div>
+        ) : (
+          <>
+            {/* Stats */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { label: "Open challenges", value: String(openChallenges.length) },
+                { label: "My applications", value: String(myProposals.length) },
+                { label: "Active pilots", value: String(myPilots.length) },
+                { label: "Payments received", value: fmtINR(totalReceived) },
+              ].map((stat) => (
+                <div key={stat.label} className="rounded-xl border border-border bg-card p-5 transition-shadow hover:shadow-md">
+                  <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
+                  <p className="mt-1.5 text-2xl font-bold">{stat.value}</p>
+                </div>
+              ))}
+            </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-8">
-              {/* Conditional Tabs Content */}
-              {activeTab === "discover" && (
-                <div className="bg-card rounded-xl border shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
-                  <div className="px-6 py-4 border-b bg-muted/20 flex justify-between items-center">
-                    <h3 className="font-semibold text-lg">Live Demand Radar</h3>
-                    <Button variant="outline" size="sm" className="hover:scale-105 transition-transform">Filter Results</Button>
-                  </div>
-                  <div className="p-6 space-y-4">
-                    {MOCK_CHALLENGES.map((c, i) => (
-                      <div key={i} className="border rounded-xl p-5 hover:border-primary/50 hover:shadow-md hover:scale-[1.01] transition-all duration-300 cursor-pointer group">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <div className="flex gap-2 items-center mb-1">
-                              <span className="text-xs font-medium px-2 py-0.5 bg-muted rounded text-muted-foreground">{c.tag}</span>
-                              <span className="text-xs font-medium text-muted-foreground">{c.dept}</span>
-                            </div>
-                            <h4 className="text-lg font-bold group-hover:text-primary transition-colors">{c.title}</h4>
-                          </div>
-                          {c.fit === "You qualify" ? 
-                            <span className="bg-green-50 text-green-700 text-xs px-2.5 py-1 rounded-full font-medium border border-green-200">✓ You qualify</span> :
-                            <span className="bg-amber-50 text-amber-700 text-xs px-2.5 py-1 rounded-full font-medium border border-amber-200">ℹ Check requirements</span>
-                          }
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">Seeking innovative solutions to monitor and manage resources effectively with AI and IoT devices.</p>
-                        <div className="mt-4 flex items-center justify-between">
-                          <span className="font-semibold text-sm">{c.budget}</span>
-                          <Button 
-                            size="sm" 
-                            disabled={appliedChallenges.includes(i)}
-                            onClick={() => setSelectedChallenge(i)}
-                          >
-                            {appliedChallenges.includes(i) ? "Applied" : "Apply Now"}
-                          </Button>
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+              <div className="space-y-6 xl:col-span-2">
+                {tab === "demand" && (
+                  <>
+                    {/* F14 filters + chart */}
+                    <section className="rounded-xl border border-border bg-card p-5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Filter label="Domain" value={fDomain} onChange={setFDomain} options={domains} />
+                        <Filter label="Department" value={fDept} onChange={setFDept} options={depts} />
+                        <Filter label="Budget" value={fBand} onChange={setFBand} options={["All", "≤10L", "10–20L", "20L+"]} />
+                        <div className="relative ml-auto">
+                          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                          <input placeholder="Search…" className="h-8 w-40 rounded-md border border-border bg-background pl-8 pr-2 text-xs outline-none focus:ring-2 focus:ring-primary/40" />
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                      {demandByDept.length > 0 && (
+                        <div className="mt-4 h-40">
+                          <p className="mb-2 text-xs font-medium text-muted-foreground">Open demand by department (₹ lakh)</p>
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={demandByDept} margin={{ top: 0, right: 8, bottom: 0, left: -22 }}>
+                              <defs>
+                                {/* Brass gradient — same recipe as the landing glow:
+                                   bright metal at the top falling into deep brass. */}
+                                <linearGradient id="brassBar" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor="hsl(38 55% 66%)" />
+                                  <stop offset="55%" stopColor="hsl(var(--brass))" />
+                                  <stop offset="100%" stopColor="hsl(32 42% 42%)" />
+                                </linearGradient>
+                              </defs>
+                              <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
+                              <XAxis dataKey="dept" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} interval={0} angle={-14} dy={6} />
+                              <Tooltip
+                                content={<DemandTooltip />}
+                                position={{ y: 2 }}
+                                offset={10}
+                                cursor={{ fill: "hsl(var(--brass) / 0.12)" }}
+                              />
+                              <Bar
+                                dataKey="lakh"
+                                radius={[6, 6, 0, 0]}
+                                fill="url(#brassBar)"
+                                activeBar={{
+                                  fill: "url(#brassBar)",
+                                  stroke: "hsl(var(--brass) / 0.7)",
+                                  strokeWidth: 1,
+                                  filter: "drop-shadow(0 0 6px hsl(var(--brass) / 0.45))",
+                                }}
+                              />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      )}
+                    </section>
 
-              {activeTab === "applications" && (
-                <div className="bg-card border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
-                  <div className="px-6 py-4 border-b bg-muted/20">
-                    <h3 className="font-semibold text-lg">My applications</h3>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                      <thead className="bg-muted/50 text-muted-foreground">
+                    {/* Radar cards */}
+                    <section className="space-y-4">
+                      <h3 className="font-semibold">Live demand radar</h3>
+                      {filtered.length === 0 ? (
+                        <EmptyState icon={Radar} title="No challenges match" description="Try clearing a filter — new challenges publish every week." />
+                      ) : (
+                        filtered.map((c) => {
+                          const applied = myProposals.some((p) => p.challengeId === c.id);
+                          return (
+                            <Link
+                              key={c.id}
+                              href={`/dashboard/startup/challenges/${c.id}`}
+                              className="block rounded-xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+                            >
+                              <div className="flex flex-wrap items-start justify-between gap-2">
+                                <div>
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{c.domain}</span>
+                                    <span className="text-xs text-muted-foreground">{c.department}</span>
+                                  </div>
+                                  <h4 className="mt-1.5 text-lg font-bold">{c.title}</h4>
+                                </div>
+                                <StatusPill status={c.status} />
+                              </div>
+                              <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{c.outcomeStatement}</p>
+                              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                                <span className="text-sm font-semibold">
+                                  {fmtINR(c.budgetMin)} – {fmtINR(c.budgetMax)} · {c.durationMonths} months
+                                </span>
+                                <span className="text-xs font-medium text-primary">
+                                  {applied ? "Applied — view status →" : "View & apply →"}
+                                </span>
+                              </div>
+                            </Link>
+                          );
+                        })
+                      )}
+                    </section>
+                  </>
+                )}
+
+                {tab === "applications" && (
+                  <section className="overflow-hidden rounded-xl border border-border bg-card">
+                    <div className="border-b border-border px-5 py-3.5">
+                      <h3 className="font-semibold">My applications</h3>
+                    </div>
+                    <table className="w-full text-sm">
+                      <thead className="bg-muted/30 text-left text-xs text-muted-foreground">
                         <tr>
-                          <th className="px-6 py-3.5 font-medium">Challenge</th>
-                          <th className="px-6 py-3.5 font-medium">Department</th>
-                          <th className="px-6 py-3.5 font-medium">Status</th>
-                          <th className="px-6 py-3.5 font-medium">Next action</th>
+                          <th className="px-5 py-3 font-medium">Challenge</th>
+                          <th className="px-5 py-3 font-medium">Cost</th>
+                          <th className="px-5 py-3 font-medium">Status</th>
+                          <th className="px-5 py-3 font-medium">Next action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border">
-                        <tr className="hover:bg-muted/50 transition-colors cursor-pointer group">
-                          <td className="px-6 py-4 font-medium group-hover:text-primary transition-colors">AI Traffic Management System</td>
-                          <td className="px-6 py-4 text-muted-foreground">Department of Transport</td>
-                          <td className="px-6 py-4"><span className="px-2.5 py-1 rounded-full text-xs bg-amber-100 text-amber-700 font-medium">Under review</span></td>
-                          <td className="px-6 py-4 text-muted-foreground group-hover:translate-x-1 transition-transform">Wait for result</td>
-                        </tr>
-                        <tr className="hover:bg-muted/50 transition-colors cursor-pointer group">
-                          <td className="px-6 py-4 font-medium group-hover:text-primary transition-colors">Smart Water Metering</td>
-                          <td className="px-6 py-4 text-muted-foreground">Jal Shakti</td>
-                          <td className="px-6 py-4"><span className="px-2.5 py-1 rounded-full text-xs bg-red-100 text-red-700 font-medium">Rejected</span></td>
-                          <td className="px-6 py-4 text-muted-foreground group-hover:translate-x-1 transition-transform">None</td>
-                        </tr>
+                        {myProposals.map((p) => {
+                          const challenge = challenges.find((c) => c.id === p.challengeId);
+                          const next =
+                            p.status === "Submitted" ? "Awaiting triage"
+                            : p.status === "Evaluating" ? "AI evaluation in progress"
+                            : p.status === "Evaluated" ? "Department decision pending"
+                            : p.status === "Active Pilot" ? "Pilot underway"
+                            : p.status === "Rejected" ? "None — reason recorded"
+                            : "None";
+                          return (
+                            <tr key={p.id} className="transition-colors hover:bg-muted/30">
+                              <td className="px-5 py-3.5 font-medium">{challenge?.title}</td>
+                              <td className="px-5 py-3.5 tabular-nums">{fmtINR(p.costEstimate)}</td>
+                              <td className="px-5 py-3.5"><StatusPill status={p.status} /></td>
+                              <td className="px-5 py-3.5 text-muted-foreground">{next}</td>
+                            </tr>
+                          );
+                        })}
+                        {myProposals.length === 0 && (
+                          <tr><td colSpan={4} className="px-5 py-10 text-center text-muted-foreground">No applications yet — explore the Demand Radar.</td></tr>
+                        )}
                       </tbody>
                     </table>
-                  </div>
-                </div>
-              )}
+                  </section>
+                )}
 
-              {activeTab === "pilots" && (
-                <div className="bg-card border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
-                  <div className="px-6 py-4 border-b bg-muted/20">
-                    <h3 className="font-semibold text-lg">Active Pilots</h3>
-                  </div>
-                  <div className="p-6">
-                    <div className="flex items-center gap-4 p-4 border border-green-500/20 rounded-lg bg-green-500/10 hover:bg-green-500/20 hover:scale-[1.01] hover:shadow-sm transition-all duration-300 cursor-pointer">
-                      <div className="h-12 w-12 rounded-full bg-green-500/20 flex items-center justify-center text-green-600 dark:text-green-400 font-bold text-xl group-hover:scale-110 transition-transform">
-                        ✓
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-lg text-foreground">Water Quality Sensor Network</h4>
-                        <p className="text-sm text-green-800 dark:text-green-300">Phase 2 Ongoing - In collaboration with Delhi Jal Board</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+                {tab === "pilots" && (
+                  <section className="space-y-4">
+                    {myPilots.map((p) => (
+                      <Link key={p.id} href={`/dashboard/startup/pilots/${p.id}`} className="block rounded-xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:shadow-md">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="font-semibold">{challenges.find((c) => c.id === p.challengeId)?.title}</p>
+                          <StatusPill status={p.status} />
+                        </div>
+                        <p className="mt-1 text-sm text-muted-foreground">{fmtINR(p.contractValue)} · {challenges.find((c) => c.id === p.challengeId)?.department}</p>
+                        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">
+                          <div className="h-full rounded-full bg-primary" style={{ width: `${(p.milestones.filter((m) => m.status === "Payment Released").length / Math.max(1, p.milestones.length)) * 100}%` }} />
+                        </div>
+                        <p className="mt-1.5 text-xs text-muted-foreground">
+                          {p.milestones.filter((m) => m.status === "Payment Released").length}/{p.milestones.length} milestones paid
+                        </p>
+                      </Link>
+                    ))}
+                    {myPilots.length === 0 && (
+                      <EmptyState icon={Gauge} title="No active pilots" description="Once a proposal is approved, the pilot and its payment schedule appear here." />
+                    )}
+                  </section>
+                )}
 
-              {activeTab === "payments" && (
-                <div className="bg-card border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
-                  <div className="px-6 py-4 border-b bg-muted/20">
-                    <h3 className="font-semibold text-lg">Payments & Invoices</h3>
-                  </div>
-                  <div className="p-6 space-y-4">
-                    <div className="flex items-center justify-between p-4 border rounded-lg hover:border-primary/50 hover:shadow-sm hover:scale-[1.01] transition-all duration-300 cursor-pointer">
-                      <div>
-                        <h4 className="font-medium">Milestone 1: Hardware Setup</h4>
-                        <p className="text-sm text-muted-foreground">Water Quality Pilot</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold">₹1,00,000</p>
-                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Paid - Aug 1</span>
-                      </div>
+                {tab === "payments" && (
+                  <section className="overflow-hidden rounded-xl border border-border bg-card">
+                    <div className="border-b border-border px-5 py-3.5">
+                      <h3 className="font-semibold">Payments & invoices</h3>
                     </div>
-                    <div className="flex items-center justify-between p-4 border rounded-lg hover:border-primary/50 hover:shadow-sm hover:scale-[1.01] transition-all duration-300 cursor-pointer">
-                      <div>
-                        <h4 className="font-medium">Milestone 2: Data Dashboard</h4>
-                        <p className="text-sm text-muted-foreground">Water Quality Pilot</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold">₹50,000</p>
-                        <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">Processing</span>
-                      </div>
+                    <div className="divide-y divide-border">
+                      {myPayments.map((m) => (
+                        <Link key={m.id} href={`/dashboard/startup/pilots/${m.pilotId}`} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-muted/40">
+                          <div>
+                            <p className="text-sm font-medium">{m.title}</p>
+                            <p className="text-xs text-muted-foreground">{m.pilotTitle}{m.releasedOn ? ` · released ${fmtDate(m.releasedOn)}` : ""}</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="font-bold tabular-nums">{fmtINR(m.amount)}</span>
+                            <StatusPill status={m.status} />
+                          </div>
+                        </Link>
+                      ))}
+                      {myPayments.length === 0 && (
+                        <div className="p-6"><EmptyState compact title="No payments yet" description="Milestone payments appear as the pilot progresses." /></div>
+                      )}
                     </div>
-                  </div>
-                </div>
-              )}
+                  </section>
+                )}
 
-              {activeTab === "profile" && (
-                <div className="bg-card border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
-                  <div className="px-6 py-4 border-b bg-muted/20 flex justify-between items-center">
-                    <h3 className="font-semibold text-lg">Company Profile</h3>
-                    <Button variant="outline" size="sm" className="hover:scale-105 transition-transform">Edit Profile</Button>
-                  </div>
-                  <div className="p-6 space-y-6">
+                {tab === "profile" && (
+                  <section className="rounded-xl border border-border bg-card p-6">
                     <div className="flex items-center gap-4">
-                      <div className="h-16 w-16 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center text-2xl font-bold">
-                        TN
-                      </div>
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-xl font-bold text-primary">TN</div>
                       <div>
-                        <h4 className="font-bold text-xl">TechNova Innovations</h4>
-                        <p className="text-sm text-muted-foreground">DPIIT Recognized Startup • Founded 2021</p>
+                        <h3 className="text-xl font-bold">{me.name}</h3>
+                        <p className="text-sm text-muted-foreground">Founded {me.incorporatedYear} · {me.stage} · {me.turnoverBand} turnover</p>
                       </div>
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="border rounded-lg p-4 hover:border-primary/30 hover:bg-muted/20 transition-colors cursor-default">
-                        <p className="text-sm text-muted-foreground mb-1">Sector</p>
-                        <p className="font-medium">Smart Cities & IoT</p>
-                      </div>
-                      <div className="border rounded-lg p-4 hover:border-primary/30 hover:bg-muted/20 transition-colors cursor-default">
-                        <p className="text-sm text-muted-foreground mb-1">Company Size</p>
-                        <p className="font-medium">11-50 employees</p>
-                      </div>
-                      <div className="border rounded-lg p-4 hover:border-primary/30 hover:bg-muted/20 transition-colors cursor-default">
-                        <p className="text-sm text-muted-foreground mb-1">Location</p>
-                        <p className="font-medium">Bangalore, Karnataka</p>
-                      </div>
-                      <div className="border rounded-lg p-4 hover:border-primary/30 hover:bg-muted/20 transition-colors cursor-default">
-                        <p className="text-sm text-muted-foreground mb-1">Website</p>
-                        <p className="font-medium text-primary hover:underline cursor-pointer">technova.example.com</p>
-                      </div>
+                    <div className="mt-5">
+                      <IntegrationBadge kind="dpiit" verified={me.dpiitVerified} />
                     </div>
-                    
-                    <div>
-                      <h4 className="font-semibold mb-2">About</h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        TechNova builds next-generation IoT sensors and data analytics platforms for municipal corporations. 
-                        Our mission is to help Indian cities become smarter, cleaner, and more efficient through data-driven governance.
-                      </p>
+                    <div className="mt-5 grid grid-cols-2 gap-4">
+                      {[
+                        ["Sector", me.sector],
+                        ["Past pilots", String(me.pastPilots)],
+                        ["DPIIT number", me.dpiitNo],
+                        ["Founder", me.founder],
+                      ].map(([k, v]) => (
+                        <div key={k} className="rounded-lg border border-border bg-muted/20 p-4">
+                          <p className="text-xs text-muted-foreground">{k}</p>
+                          <p className="mt-0.5 font-medium">{v}</p>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-8">
-              {/* Credibility score */}
-              <div className="bg-gradient-to-br from-indigo-900 to-primary text-white rounded-xl shadow-lg p-6 relative overflow-hidden hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
-                <div className="absolute top-0 right-0 p-3 opacity-20">
-                  <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
-                </div>
-                <h3 className="font-semibold text-indigo-100">Credibility Score</h3>
-                <div className="mt-4 flex items-end gap-3">
-                  <span className="text-5xl font-bold tracking-tighter">84</span>
-                  <span className="text-indigo-200 mb-1">/ 100</span>
-                </div>
-                <div className="mt-6 space-y-3 text-sm">
-                  <div className="flex justify-between items-center"><span className="text-indigo-100">Pilots Completed</span><span className="font-medium">1</span></div>
-                  <div className="flex justify-between items-center"><span className="text-indigo-100">On-time Delivery</span><span className="font-medium">100%</span></div>
-                </div>
-                <div className="mt-6 bg-white/10 backdrop-blur rounded p-3 text-xs text-indigo-100">
-                  Your score is portable across all government departments.
-                </div>
+                  </section>
+                )}
               </div>
 
-              {/* Milestone payment tracker */}
-              <div className="bg-card rounded-xl border shadow-sm hover:shadow-md transition-shadow duration-300">
-                <div className="px-6 py-4 border-b bg-muted/20">
-                  <h3 className="font-semibold">Milestone Tracker</h3>
-                  <p className="text-xs text-muted-foreground mt-1">Water Quality Pilot</p>
+              {/* Side rail */}
+              <div className="space-y-6">
+                {/* Credibility */}
+                <div className="rounded-xl bg-gradient-to-br from-indigo-900 to-primary p-6 text-white shadow-lg">
+                  <div className="flex items-center gap-2">
+                    <BadgeCheck className="h-4 w-4 text-indigo-200" />
+                    <h3 className="font-semibold text-indigo-100">Credibility score</h3>
+                  </div>
+                  <div className="mt-4 flex items-end gap-3">
+                    <span className="text-5xl font-bold tracking-tighter">{me.credibility}</span>
+                    <span className="mb-1 text-indigo-200">/ 100</span>
+                  </div>
+                  <div className="mt-5 space-y-2.5 text-sm">
+                    <div className="flex justify-between"><span className="text-indigo-100">Past pilots</span><span className="font-medium">{me.pastPilots}</span></div>
+                    <div className="flex justify-between"><span className="text-indigo-100">DPIIT status</span><span className="font-medium">{me.dpiitVerified ? "Verified" : "Pending"}</span></div>
+                    <div className="flex justify-between"><span className="text-indigo-100">Turnover band</span><span className="font-medium">{me.turnoverBand}</span></div>
+                  </div>
+                  <div className="mt-5 rounded bg-white/10 p-3 text-xs text-indigo-100">
+                    Your score is portable across all government departments.
+                  </div>
                 </div>
-                <div className="p-6">
-                  <div className="relative border-l-2 border-primary ml-3 space-y-6">
-                    <div className="relative pl-6 group">
-                      <div className="absolute -left-[9px] top-1 h-4 w-4 rounded-full bg-primary ring-4 ring-primary/20 group-hover:scale-125 transition-transform duration-300"></div>
-                      <h4 className="font-medium text-sm group-hover:text-primary transition-colors">Milestone 1: Hardware Setup</h4>
-                      <p className="text-xs text-green-600 font-medium mt-1">₹1,00,000 Paid (Aug 1)</p>
-                    </div>
-                    <div className="relative pl-6 group">
-                      <div className="absolute -left-[9px] top-1 h-4 w-4 rounded-full bg-amber-500 ring-4 ring-amber-500/20 group-hover:scale-125 transition-transform duration-300"></div>
-                      <h4 className="font-medium text-sm group-hover:text-amber-600 transition-colors">Milestone 2: Data Dashboard</h4>
-                      <p className="text-xs text-amber-600 font-medium mt-1">Invoice Raised (Sep 20)</p>
-                      <div className="text-xs text-muted-foreground mt-1">Pending verification by Gov Officer</div>
-                    </div>
-                    <div className="relative pl-6 group">
-                      <div className="absolute -left-[9px] top-1 h-4 w-4 rounded-full bg-muted border-2 border-muted-foreground group-hover:border-primary transition-colors duration-300"></div>
-                      <h4 className="font-medium text-sm text-muted-foreground group-hover:text-foreground transition-colors">Milestone 3: Final Report</h4>
-                      <p className="text-xs text-muted-foreground mt-1">₹50,000 Expected</p>
-                    </div>
+
+                {/* Milestone tracker */}
+                <div className="rounded-xl border border-border bg-card">
+                  <div className="border-b border-border px-5 py-3.5">
+                    <h3 className="font-semibold">Milestone tracker</h3>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{myPilots[0] ? challenges.find((c) => c.id === myPilots[0]?.challengeId)?.title : "No active pilot"}</p>
+                  </div>
+                  <div className="p-5">
+                    {myPilots[0] ? (
+                      <ol className="relative space-y-5 border-l-2 border-primary/30 pl-5">
+                        {myPilots[0].milestones.map((m) => (
+                          <li key={m.id} className="relative">
+                            <span
+                              className={`absolute -left-[27px] top-1 h-3.5 w-3.5 rounded-full ring-4 ${
+                                m.status === "Payment Released"
+                                  ? "bg-green-500 ring-green-500/20"
+                                  : m.status === "Evidence Submitted"
+                                    ? "bg-amber-500 ring-amber-500/20"
+                                    : "bg-muted ring-muted/40"
+                              }`}
+                            />
+                            <p className="text-sm font-medium">{m.title}</p>
+                            <p className={`mt-0.5 text-xs font-medium ${m.status === "Payment Released" ? "text-green-600" : m.status === "Evidence Submitted" ? "text-amber-600" : "text-muted-foreground"}`}>
+                              {fmtINR(m.amount)} · {m.status}
+                            </p>
+                          </li>
+                        ))}
+                      </ol>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Milestones appear after your first pilot.</p>
+                    )}
+                    <Link href={myPilots[0] ? `/dashboard/startup/pilots/${myPilots[0].id}` : "/dashboard/startup"} className="mt-4 inline-block text-xs font-medium text-primary hover:underline">
+                      Open pilot page →
+                    </Link>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </main>
+          </>
+        )}
+      </div>
+    </DashboardShell>
+  );
+}
 
-      {/* Application Dialog */}
-      <Dialog open={selectedChallenge !== null} onOpenChange={(open) => !open && setSelectedChallenge(null)}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Apply for Challenge</DialogTitle>
-            <DialogDescription>
-              Submit your proposal for {selectedChallenge !== null ? MOCK_CHALLENGES[selectedChallenge].title : ""}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="solution">How will you solve this?</Label>
-              <Textarea
-                id="solution"
-                placeholder="Briefly describe your technical approach and methodology..."
-                className="h-24 resize-none"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="timeline">Estimated Timeline & Cost</Label>
-              <Input id="timeline" placeholder="e.g., 3 months for MVP, ₹8L estimated cost" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSelectedChallenge(null)} disabled={isSubmittingApp}>Cancel</Button>
-            <Button 
-              disabled={isSubmittingApp}
-              onClick={() => {
-                if (selectedChallenge !== null) {
-                  setIsSubmittingApp(true);
-                  setTimeout(() => {
-                    setAppliedChallenges(prev => [...prev, selectedChallenge]);
-                    setIsSubmittingApp(false);
-                    setSelectedChallenge(null);
-                  }, 1000);
-                }
-              }}
-            >
-              {isSubmittingApp ? "Submitting..." : "Submit Proposal"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+/** Gold-branded hover card for the demand chart — pinned above the bars. */
+function DemandTooltip({ active, payload, label }: {
+  active?: boolean;
+  payload?: Array<{ value?: number | string }>;
+  label?: string;
+}) {
+  if (!active || !payload?.length) return null;
+  const value = payload[0]?.value;
+  return (
+    <div className="pointer-events-none rounded-lg border border-primary/40 bg-card px-3 py-2 shadow-lg">
+      <p className="text-xs font-semibold text-foreground">{label}</p>
+      <p className="mt-0.5 text-xs text-muted-foreground">
+        Max budget <span className="font-semibold text-primary">₹{value}L</span>
+      </p>
     </div>
+  );
+}
+
+function Filter({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: string[] }) {
+  return (
+    <label className="flex items-center gap-1.5 text-xs">
+      <span className="text-muted-foreground">{label}</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-8 rounded-md border border-border bg-background px-2 text-xs outline-none focus:ring-2 focus:ring-primary/40"
+      >
+        {options.map((o) => <option key={o} value={o}>{o}</option>)}
+      </select>
+    </label>
   );
 }

@@ -1,0 +1,575 @@
+/**
+ * Seed data for the demo store — one consistent story used on every screen:
+ * Delhi Jal Board's Water Quality Sensor Network challenge, TechNova
+ * Innovations' winning proposal, and the 3-milestone pilot used throughout
+ * the recording script.
+ */
+import type {
+  AuditEvent,
+  Challenge,
+  AppNotification,
+  Pilot,
+  Proposal,
+  Startup,
+  Template,
+} from "./types";
+
+const TODAY = new Date("2026-09-30T09:00:00+05:30");
+const DAY_MS = 86_400_000;
+
+function daysAgo(n: number): string {
+  return new Date(TODAY.getTime() - n * DAY_MS).toISOString();
+}
+function daysFromNow(n: number): string {
+  return new Date(TODAY.getTime() + n * DAY_MS).toISOString();
+}
+
+export const CURRENT_USER = {
+  gov: { name: "Priya Nair", title: "Assistant Director", department: "Delhi Jal Board" },
+  evaluator: { name: "Dr. Meera Krishnan", title: "Independent Technical Assessor" },
+  admin: { name: "Ravi Sharma", title: "Program Administrator", department: "Startup Cell" },
+} as const;
+
+export const CURRENT_STARTUP: Startup = {
+  id: "st-technova",
+  name: "TechNova Innovations",
+  founder: "Arjun Kapoor",
+  sector: "IoT / Water Technology",
+  stage: "Early Revenue",
+  dpiitNo: "DIPP142817",
+  dpiitVerified: true,
+  incorporatedYear: 2022,
+  turnoverBand: "Under ₹50L",
+  pastPilots: 2,
+  credibility: 86,
+};
+
+export const startups: Startup[] = [
+  CURRENT_STARTUP,
+  { id: "st-aquatech", name: "AquaTech Solutions", founder: "Sana Bhatt", sector: "Water Technology", stage: "Ideation", dpiitNo: "DIPP118902", dpiitVerified: true, incorporatedYear: 2023, turnoverBand: "Under ₹10L", pastPilots: 0, credibility: 61 },
+  { id: "st-hydrometrics", name: "HydroMetrics AI", founder: "Devansh Rao", sector: "Water Technology", stage: "Prototype", dpiitNo: "DIPP126530", dpiitVerified: true, incorporatedYear: 2023, turnoverBand: "Under ₹10L", pastPilots: 1, credibility: 68 },
+  { id: "st-cleandrop", name: "CleanDrop Systems", founder: "Farah Shaikh", sector: "Water Technology", stage: "Prototype", dpiitNo: "DIPP134221", dpiitVerified: false, incorporatedYear: 2024, turnoverBand: "Under ₹10L", pastPilots: 0, credibility: 54 },
+  { id: "st-citygrid", name: "CityGrid Systems", founder: "Karan Malhotra", sector: "Smart Mobility", stage: "Early Revenue", dpiitNo: "DIPP109884", dpiitVerified: true, incorporatedYear: 2021, turnoverBand: "₹50L–₹1Cr", pastPilots: 3, credibility: 79 },
+  { id: "st-metrosense", name: "MetroSense Analytics", founder: "Neha Pillai", sector: "Smart Mobility", stage: "Prototype", dpiitNo: "DIPP131150", dpiitVerified: true, incorporatedYear: 2022, turnoverBand: "Under ₹50L", pastPilots: 1, credibility: 66 },
+  { id: "st-aerofarms", name: "AeroFarms Robotics", founder: "Vikas Chandra", sector: "Agritech", stage: "Ideation", dpiitNo: "DIPP140981", dpiitVerified: false, incorporatedYear: 2024, turnoverBand: "Under ₹10L", pastPilots: 0, credibility: 49 },
+  { id: "st-skyield", name: "SkyYield Drones", founder: "Ishaan Bose", sector: "Agritech", stage: "Early Revenue", dpiitNo: "DIPP115706", dpiitVerified: true, incorporatedYear: 2021, turnoverBand: "₹50L–₹1Cr", pastPilots: 2, credibility: 72 },
+  { id: "st-medikit", name: "MediKits Health", founder: "Leena D'Souza", sector: "Healthtech", stage: "Prototype", dpiitNo: "DIPP128439", dpiitVerified: true, incorporatedYear: 2023, turnoverBand: "Under ₹10L", pastPilots: 1, credibility: 63 },
+  { id: "st-wastesense", name: "WasteSense IoT", founder: "Rohit Khanna", sector: "Cleantech", stage: "Ideation", dpiitNo: "DIPP143772", dpiitVerified: false, incorporatedYear: 2025, turnoverBand: "Under ₹10L", pastPilots: 0, credibility: 45 },
+];
+
+export const challenges: Challenge[] = [
+  {
+    id: "ch-water-quality",
+    title: "Water Quality Sensor Network",
+    department: "Delhi Jal Board",
+    domain: "Water & Sanitation",
+    district: "North Delhi",
+    problemStatement:
+      "Contamination events in the north-zone distribution network currently take up to 48 hours to detect, forcing precautionary supply shutdowns across 9 wards. Sampling is manual, twice weekly, and cannot isolate the affected segment.",
+    outcomeStatement:
+      "Detect contamination events in the distribution network within 6 hours, down from the current 48 hours, across 40 monitoring points.",
+    budgetMin: 1_000_000,
+    budgetMax: 1_500_000,
+    durationMonths: 6,
+    deadline: daysFromNow(21),
+    eligibility: [
+      "DPIIT-recognised startup (turnover & prior-experience relaxations apply)",
+      "Prior experience of 3 years OR pilot-based evidence accepted",
+      "No earnest money deposit required",
+      "Domain: water quality, IoT sensing, or environmental monitoring",
+    ],
+    templateIds: ["tpl-problem", "tpl-eval", "tpl-pilot", "tpl-dataip", "tpl-cyber"],
+    status: "Open",
+  },
+  {
+    id: "ch-traffic-ai",
+    title: "AI Traffic Management System",
+    department: "Department of Transport",
+    domain: "Smart Mobility",
+    district: "New Delhi",
+    problemStatement:
+      "Corridor average speeds on six arterial roads have fallen 22% in three years. The existing signal network runs on fixed timings with no perception of live demand.",
+    outcomeStatement:
+      "Reduce peak-hour corridor travel time by 15% across 12 junctions, measured against the previous quarter baseline.",
+    budgetMin: 2_000_000,
+    budgetMax: 3_000_000,
+    durationMonths: 6,
+    deadline: daysFromNow(30),
+    eligibility: [
+      "DPIIT-recognised startup (turnover & prior-experience relaxations apply)",
+      "Domain: traffic engineering, computer vision, or mobility analytics",
+    ],
+    templateIds: ["tpl-problem", "tpl-eval", "tpl-pilot"],
+    status: "Open",
+  },
+  {
+    id: "ch-drone-crop",
+    title: "Drone Crop Survey",
+    department: "Agriculture Department",
+    domain: "Agritech",
+    district: "Najafgarh",
+    problemStatement:
+      "Crop-loss assessment after unseasonal rain takes 6–8 weeks, delaying relief disbursement for thousands of farmers.",
+    outcomeStatement:
+      "Complete survey and loss assessment of 5,000 hectares within 7 days of an event, with 90% plot-level accuracy.",
+    budgetMin: 800_000,
+    budgetMax: 1_200_000,
+    durationMonths: 4,
+    deadline: daysFromNow(14),
+    eligibility: [
+      "DPIIT-recognised startup (turnover & prior-experience relaxations apply)",
+      "DGCA-certified drone operations preferred",
+    ],
+    templateIds: ["tpl-problem", "tpl-eval"],
+    status: "Open",
+  },
+  {
+    id: "ch-health-kiosks",
+    title: "Rural Health Kiosks Data Integration",
+    department: "Health & Family Welfare",
+    domain: "Healthtech",
+    district: "MP — Chhindwara",
+    problemStatement:
+      "Diagnostic kiosks in 40 rural centres log data on paper registers; district officers see summary reports only at month-end.",
+    outcomeStatement:
+      "Daily automated reporting from all 40 kiosks with 95% uptime and a district dashboard refreshed every 4 hours.",
+    budgetMin: 600_000,
+    budgetMax: 900_000,
+    durationMonths: 3,
+    deadline: daysFromNow(45),
+    eligibility: ["DPIIT-recognised startup", "ABDM-compatible data standards"],
+    templateIds: ["tpl-problem", "tpl-eval", "tpl-dataip"],
+    status: "Open",
+  },
+  {
+    id: "ch-waste-monitor",
+    title: "Smart City Waste Monitoring",
+    department: "Urban Development",
+    domain: "Cleantech",
+    district: "Delhi",
+    problemStatement:
+      "Collection vehicles cover fixed routes regardless of bin fill levels; complaint hotspots recur in 14 zones.",
+    outcomeStatement:
+      "Cut missed-pickup complaints by 40% and reduce route distance by 15% across 3 zones in 8 weeks.",
+    budgetMin: 500_000,
+    budgetMax: 900_000,
+    durationMonths: 3,
+    deadline: daysFromNow(10),
+    eligibility: ["DPIIT-recognised startup", "Domain: cleantech, IoT, or route optimisation"],
+    templateIds: ["tpl-problem", "tpl-eval"],
+    status: "Open",
+  },
+  {
+    id: "ch-streetlight",
+    title: "Adaptive Street Lighting Retrofit",
+    department: "Urban Development",
+    domain: "Cleantech",
+    district: "South Delhi",
+    problemStatement: "Legacy sodium-vapour lighting on 120 km of arterial roads consumes 38% more energy than needed.",
+    outcomeStatement: "Show a 30% energy reduction across 15 km without a drop in measured road luminance.",
+    budgetMin: 1_200_000,
+    budgetMax: 1_800_000,
+    durationMonths: 5,
+    deadline: daysAgo(9),
+    eligibility: ["DPIIT-recognised startup"],
+    templateIds: ["tpl-problem", "tpl-eval"],
+    status: "Closed",
+  },
+  {
+    id: "ch-water-atm",
+    title: "Water ATM Uptime Assurance",
+    department: "Delhi Jal Board",
+    domain: "Water & Sanitation",
+    district: "West Delhi",
+    problemStatement: "78 public water ATMs report outages with a median delay of 11 hours.",
+    outcomeStatement: "Fault detection within 1 hour and remote restart success above 70% across all units.",
+    budgetMin: 400_000,
+    budgetMax: 700_000,
+    durationMonths: 3,
+    deadline: daysAgo(35),
+    eligibility: ["DPIIT-recognised startup"],
+    templateIds: ["tpl-problem"],
+    status: "Closed",
+  },
+  {
+    id: "ch-school-air",
+    title: "School Air Quality Alert Network",
+    department: "Education Department",
+    domain: "Cleantech",
+    district: "Delhi",
+    problemStatement: "Schools receive generic AQI data; indoor classroom air is unmeasured during winter months.",
+    outcomeStatement: "Indoor alerts within 5 minutes of threshold breach in 25 classrooms, verified over 4 weeks.",
+    budgetMin: 700_000,
+    budgetMax: 1_000_000,
+    durationMonths: 4,
+    deadline: daysAgo(60),
+    eligibility: ["DPIIT-recognised startup"],
+    templateIds: ["tpl-problem"],
+    status: "Closed",
+  },
+];
+
+export const proposals: Proposal[] = [
+  {
+    id: "pr-technova-water",
+    challengeId: "ch-water-quality",
+    startupId: "st-technova",
+    summary:
+      "40 solar-powered multi-parameter sensor probes (pH, turbidity, TDS, chlorine) with LoRaWAN backhaul into an ML anomaly-detection service. Contamination alerts reach DJB control room within minutes of the event; field crews receive a segment-level isolation map.",
+    costEstimate: 1_350_000,
+    timelineMonths: 6,
+    status: "Evaluated",
+    fitScore: 92,
+    submittedAt: daysAgo(12),
+    evaluation: {
+      scores: [
+        { criterion: "Technical Feasibility", score: 86, weight: 30 },
+        { criterion: "Innovation & IP", score: 78, weight: 15 },
+        { criterion: "Departmental Fit", score: 90, weight: 25 },
+        { criterion: "Budget Reasonableness", score: 74, weight: 15 },
+        { criterion: "Scalability", score: 82, weight: 15 },
+      ],
+      total: 82,
+      verdict: "Recommend",
+      agentNotes: [
+        { agent: "Procurement Officer", note: "Outcome statement maps 1:1 to our detection-time KPI. GFR relaxations correctly claimed under the startup sandbox — no EMD demanded." },
+        { agent: "Technical Assessor", note: "LoRaWAN + solar is proven for this topology. Probe calibration schedule is realistic; sampling every 4 minutes meets the 6-hour detection target with margin." },
+        { agent: "Legal Advisor", note: "IP clause accepted as published: startup retains IP, DJB receives a perpetual non-exclusive licence for department use." },
+        { agent: "Finance Analyst", note: "₹13.5L against a ₹10–15L window is proportionate. 30/40/30 milestone spread protects the department if phase 1 hardware slips." },
+        { agent: "Cyber & Risk Reviewer", note: "Data localisation confirmed in-hosting within India. Recommend the sandbox cap and an active kill switch for the pilot duration." },
+      ],
+    },
+  },
+  {
+    id: "pr-aquatech-water",
+    challengeId: "ch-water-quality",
+    startupId: "st-aquatech",
+    summary: "Float-switch based turbidity alerts at 25 sites with SMS escalation.",
+    costEstimate: 980_000,
+    timelineMonths: 6,
+    status: "Evaluating",
+    fitScore: 64,
+    submittedAt: daysAgo(8),
+  },
+  {
+    id: "pr-hydrometrics-water",
+    challengeId: "ch-water-quality",
+    startupId: "st-hydrometrics",
+    summary: "Reservoir-side optical sensors with a cloud dashboard; district-level coverage rather than segment-level.",
+    costEstimate: 1_180_000,
+    timelineMonths: 5,
+    status: "Evaluating",
+    fitScore: 71,
+    submittedAt: daysAgo(7),
+  },
+  {
+    id: "pr-cleandrop-water",
+    challengeId: "ch-water-quality",
+    startupId: "st-cleandrop",
+    summary: "Manual sampling kits with a routing app for field staff.",
+    costEstimate: 640_000,
+    timelineMonths: 4,
+    status: "Submitted",
+    fitScore: 47,
+    submittedAt: daysAgo(2),
+  },
+  {
+    id: "pr-citygrid-traffic",
+    challengeId: "ch-traffic-ai",
+    startupId: "st-citygrid",
+    summary: "Adaptive signal control using existing CCTV feeds with edge inference at junction cabinets.",
+    costEstimate: 2_450_000,
+    timelineMonths: 6,
+    status: "Evaluated",
+    fitScore: 88,
+    submittedAt: daysAgo(16),
+    evaluation: {
+      scores: [
+        { criterion: "Technical Feasibility", score: 84, weight: 30 },
+        { criterion: "Innovation & IP", score: 70, weight: 15 },
+        { criterion: "Departmental Fit", score: 92, weight: 25 },
+        { criterion: "Budget Reasonableness", score: 80, weight: 15 },
+        { criterion: "Scalability", score: 88, weight: 15 },
+      ],
+      total: 84,
+      verdict: "Recommend",
+      agentNotes: [
+        { agent: "Procurement Officer", note: "Uses existing CCTV estate — no new capex for the department." },
+        { agent: "Technical Assessor", note: "Edge inference at cabinets avoids backhaul costs; fall-back to fixed plans is specified." },
+        { agent: "Finance Analyst", note: "Within window; hardware amortisation transparent." },
+        { agent: "Cyber & Risk Reviewer", note: "Camera feeds stay on-prem; no third-party transfer." },
+        { agent: "Legal Advisor", note: "Vendor-neutral exit clause included in the draft agreement." },
+      ],
+    },
+  },
+  {
+    id: "pr-metrosense-traffic",
+    challengeId: "ch-traffic-ai",
+    startupId: "st-metrosense",
+    summary: "Radar-loop detectors with a central optimisation service.",
+    costEstimate: 2_890_000,
+    timelineMonths: 6,
+    status: "Submitted",
+    fitScore: 69,
+    submittedAt: daysAgo(5),
+  },
+  {
+    id: "pr-skyield-drone",
+    challengeId: "ch-drone-crop",
+    startupId: "st-skyield",
+    summary: "Multispectral drone survey fleet with an ML loss-assessment pipeline already certified by DGCA.",
+    costEstimate: 1_090_000,
+    timelineMonths: 4,
+    status: "Evaluated",
+    fitScore: 81,
+    submittedAt: daysAgo(20),
+    evaluation: {
+      scores: [
+        { criterion: "Technical Feasibility", score: 82, weight: 30 },
+        { criterion: "Innovation & IP", score: 66, weight: 15 },
+        { criterion: "Departmental Fit", score: 84, weight: 25 },
+        { criterion: "Budget Reasonableness", score: 78, weight: 15 },
+        { criterion: "Scalability", score: 80, weight: 15 },
+      ],
+      total: 79,
+      verdict: "Recommend",
+      agentNotes: [
+        { agent: "Procurement Officer", note: "Directly addresses the 6–8 week assessment delay flagged by the revenue department." },
+        { agent: "Technical Assessor", note: "DGCA certification de-risks operations; 5,000 ha in 7 days is achievable with 2 drones." },
+        { agent: "Finance Analyst", note: "Per-hectare cost is 40% below the current manual survey contract." },
+        { agent: "Cyber & Risk Reviewer", note: "Imagery stored in-country; consent clauses for farmland coverage included." },
+        { agent: "Legal Advisor", note: "No objection to the pilot structure as proposed." },
+      ],
+    },
+  },
+  {
+    id: "pr-medikit-health",
+    challengeId: "ch-health-kiosks",
+    startupId: "st-medikit",
+    summary: "ABDM-compliant gateway that digitises kiosk registers with nightly reconciliation.",
+    costEstimate: 820_000,
+    timelineMonths: 3,
+    status: "Submitted",
+    fitScore: 73,
+    submittedAt: daysAgo(3),
+  },
+  {
+    id: "pr-wastesense-waste",
+    challengeId: "ch-waste-monitor",
+    startupId: "st-wastesense",
+    summary: "Ultrasonic fill sensors with route-optimisation suggestions.",
+    costEstimate: 760_000,
+    timelineMonths: 3,
+    status: "Submitted",
+    fitScore: 58,
+    submittedAt: daysAgo(1),
+  },
+];
+
+const waterPilotMilestones = [
+  {
+    id: "ms-water-1",
+    pilotId: "pil-water",
+    title: "Hardware Setup",
+    kpi: "40 sensors live and reporting",
+    paymentPct: 30,
+    amount: 360_000,
+    dueDate: daysFromNow(30),
+    status: "Payment Released" as const,
+    evidenceName: "installation-report-sites-1-40.pdf",
+    releasedOn: daysAgo(54),
+  },
+  {
+    id: "ms-water-2",
+    pilotId: "pil-water",
+    title: "Data Dashboard",
+    kpi: "Live dashboard with <15 min data freshness",
+    paymentPct: 40,
+    amount: 480_000,
+    dueDate: daysFromNow(75),
+    status: "Evidence Submitted" as const,
+    evidenceName: "dashboard-live-recording.zip",
+  },
+  {
+    id: "ms-water-3",
+    pilotId: "pil-water",
+    title: "Final Report",
+    kpi: "Independent validation of 6-hour detection KPI",
+    paymentPct: 30,
+    amount: 360_000,
+    dueDate: daysFromNow(150),
+    status: "Pending" as const,
+  },
+];
+
+const waterKpiSeries = [
+  { month: "May", actual: 47, target: 48 },
+  { month: "Jun", actual: 31, target: 42 },
+  { month: "Jul", actual: 22, target: 30 },
+  { month: "Aug", actual: 13, target: 18 },
+  { month: "Sep", actual: 8, target: 12 },
+  { month: "Oct", actual: 7, target: 6 },
+];
+
+export const pilots: Pilot[] = [
+  {
+    id: "pil-water",
+    proposalId: "pr-technova-water",
+    challengeId: "ch-water-quality",
+    startupId: "st-technova",
+    status: "In Progress",
+    contractValue: 1_200_000,
+    startDate: daysAgo(75),
+    endDate: daysFromNow(105),
+    milestones: waterPilotMilestones,
+    kpis: [
+      { label: "Contamination detection time", baseline: 48, target: 6, actual: 7, unit: "hours", lowerIsBetter: true },
+      { label: "Sensor uptime", baseline: 0, target: 90, actual: 94, unit: "%" },
+      { label: "False alarm rate", baseline: 18, target: 5, actual: 3.2, unit: "%", lowerIsBetter: true },
+    ],
+    kpiSeries: waterKpiSeries,
+    risks: [
+      { id: "rk-1", title: "Probe biofouling in monsoon months", likelihood: "Medium", impact: "Medium", mitigation: "Monthly wiper-cleaning cycle; spare probe pool of 5 units.", owner: "TechNova" },
+      { id: "rk-2", title: "LoRaWAN coverage gaps in Zone 4", likelihood: "Low", impact: "High", mitigation: "Two gateway reinforcement sites agreed with DJB Civil.", owner: "Delhi Jal Board" },
+      { id: "rk-3", title: "False alarms eroding control-room trust", likelihood: "Medium", impact: "Medium", mitigation: "Dual-sensor confirmation before critical alerts; threshold tuning at week 4.", owner: "TechNova" },
+      { id: "rk-4", title: "Field staff adoption of the isolation map", likelihood: "Low", impact: "Low", mitigation: "Two training sessions completed 12 Sep; Hindi UI shipped.", owner: "Delhi Jal Board" },
+    ],
+    sandbox: {
+      area: "40 monitoring points, Zones 1–5 distribution network",
+      durationWeeks: 26,
+      budgetCap: 1_200_000,
+      exitCriteria: [
+        "Detection time ≤ 6 hours sustained over 30 days",
+        "Sensor uptime ≥ 90% monthly",
+        "False alarm rate ≤ 5%",
+      ],
+      killSwitchActive: false,
+    },
+    compliance: {
+      dataResidency: "India",
+      ipClause: "Startup retains IP; Delhi Jal Board receives a perpetual, non-exclusive licence for departmental use.",
+      vaptDone: true,
+      dsaSigned: true,
+      incidentContact: "security@technova.example / +91 11 4000 1234",
+      score: 100,
+    },
+  },
+];
+
+export const templates: Template[] = [
+  {
+    id: "tpl-problem",
+    kind: "problem",
+    title: "Problem Statement",
+    description: "Outcome-based challenge framing aligned with GFR 2017 rule 170 for pilot projects.",
+    sections: [
+      { heading: "Context", body: "State the current process, the cost of the status quo, and the citizens affected. Quantify the baseline with the department's own measurements." },
+      { heading: "Problem definition", body: "Describe the gap between today's outcome and the required outcome. Avoid prescribing a technology — the market is invited to propose the mechanism." },
+      { heading: "Outcome statement", body: "One measurable sentence: metric, target, and measurement method. This becomes the pilot's primary KPI verbatim." },
+      { heading: "Constraints", body: "Non-negotiables only: data residency, safety, and statutory compliance. Everything else is left to proposers." },
+    ],
+  },
+  {
+    id: "tpl-eval",
+    kind: "evaluation",
+    title: "Evaluation Criteria",
+    description: "Weighted scoring rubric with startup-relaxation acknowledgements built in.",
+    sections: [
+      { heading: "Criteria and weights", body: "Technical feasibility 30%, departmental fit 25%, scalability 15%, innovation 15%, budget reasonableness 15%. Weights are published before submission." },
+      { heading: "Scoring scale", body: "Each criterion scored 0–100. Below 40 on feasibility triggers an automatic reviewer comment regardless of the total." },
+      { heading: "Startup relaxations", body: "Record relaxations claimed under the DPIIT sandbox: prior turnover waived, prior experience substituted with pilot evidence, no EMD." },
+      { heading: "Conflict of interest", body: "Each evaluator declares no association with bidding startups before scores unlock." },
+    ],
+  },
+  {
+    id: "tpl-pilot",
+    kind: "pilot",
+    title: "Pilot Agreement",
+    description: "Sandboxed pilot contract with milestone payments and exit clauses.",
+    sections: [
+      { heading: "Parties and scope", body: "Names the department, the startup, and the exact sandbox area with monitoring points or sites covered." },
+      { heading: "Milestones and payments", body: "30/40/30 spread recommended. Each milestone carries a KPI, a verification method, and a release date on approval of evidence." },
+      { heading: "Exit criteria", body: "The conditions under which the pilot converts to procurement, scales, or is closed early. Include the kill-switch trigger list." },
+      { heading: "Liability cap", body: "Liability limited to the pilot contract value during the sandbox period; escalation matrix for service failures." },
+    ],
+  },
+  {
+    id: "tpl-dataip",
+    kind: "dataip",
+    title: "Data & IP Clauses",
+    description: "Data residency, ownership, and licensing terms for startup pilots.",
+    sections: [
+      { heading: "Data residency", body: "All department data processed and stored within India. Cross-border transfer is prohibited for the pilot duration." },
+      { heading: "Ownership", body: "Department data remains the property of the department. Derived models and aggregates remain with the startup unless the contract states otherwise." },
+      { heading: "IP licence", body: "Startup retains foreground IP. The department receives a perpetual, non-exclusive, royalty-free licence for departmental use." },
+      { heading: "Return and deletion", body: "On closure, department data is returned or deleted within 30 days with a signed deletion certificate." },
+    ],
+  },
+  {
+    id: "tpl-cyber",
+    kind: "cyber",
+    title: "Cybersecurity Annex",
+    description: "Minimum security posture for systems touching government networks.",
+    sections: [
+      { heading: "Baseline controls", body: "MFA for all operator accounts, encryption in transit (TLS 1.2+) and at rest (AES-256), and role-based access with quarterly review." },
+      { heading: "VAPT", body: "A vulnerability assessment and penetration test by a CERT-IN empanelled auditor before go-live; criticals closed before data flows." },
+      { heading: "Incident response", body: "Named contact reachable within 1 hour; incidents reported to the department CISO and CERT-In per statutory timelines." },
+      { heading: "Audit rights", body: "The department may audit controls on 15 days' notice during the pilot and for 1 year after closure." },
+    ],
+  },
+  {
+    id: "tpl-risk",
+    kind: "risk",
+    title: "Risk Register",
+    description: "Likelihood/impact grid with named owners and mitigation tracking.",
+    sections: [
+      { heading: "Register format", body: "Every risk carries a likelihood, an impact, a named owner, and a mitigation with a review date. Nothing is tracked 'off-register'." },
+      { heading: "Scoring", body: "Likelihood and impact on a Low/Medium/High scale. Any High/High combination triggers a fortnightly review cadence." },
+      { heading: "Review cadence", body: "The register is reviewed at each milestone verification and before every payment release." },
+    ],
+  },
+  {
+    id: "tpl-pathway",
+    kind: "pathway",
+    title: "Procurement Pathway",
+    description: "Steps from pilot completion to scaled procurement.",
+    sections: [
+      { heading: "Validation", body: "An independent validator verifies KPI evidence against the outcome statement. Findings are published to the admin queue." },
+      { heading: "Decision", body: "The department chooses: scale to more districts, convert to regular procurement, or close. Each path has a defined paper trail." },
+      { heading: "Conversion", body: "Conversion to procurement follows budget approval and GeM listing or a direct route under GFR 149(ii), using pilot evidence as the justification note." },
+    ],
+  },
+];
+
+export const auditLog: AuditEvent[] = [
+  { id: "au-1", at: daysAgo(20), actor: "Priya Nair", role: "gov", action: "Published challenge", entity: "Challenge", entityId: "ch-water-quality" },
+  { id: "au-2", at: daysAgo(19), actor: "Priya Nair", role: "gov", action: "Published challenge", entity: "Challenge", entityId: "ch-traffic-ai" },
+  { id: "au-3", at: daysAgo(18), actor: "TechNova Innovations", role: "startup", action: "Submitted proposal", entity: "Proposal", entityId: "pr-citygrid-traffic" },
+  { id: "au-4", at: daysAgo(16), actor: "CityGrid Systems", role: "startup", action: "Submitted proposal", entity: "Proposal", entityId: "pr-citygrid-traffic" },
+  { id: "au-5", at: daysAgo(12), actor: "TechNova Innovations", role: "startup", action: "Submitted proposal", entity: "Proposal", entityId: "pr-technova-water" },
+  { id: "au-6", at: daysAgo(11), actor: "Dr. Meera Krishnan", role: "evaluator", action: "Started evaluation", entity: "Proposal", entityId: "pr-technova-water" },
+  { id: "au-7", at: daysAgo(10), actor: "Dr. Meera Krishnan", role: "evaluator", action: "Submitted scores", entity: "Proposal", entityId: "pr-technova-water" },
+  { id: "au-8", at: daysAgo(9), actor: "Priya Nair", role: "gov", action: "Approved proposal for pilot", entity: "Proposal", entityId: "pr-technova-water" },
+  { id: "au-9", at: daysAgo(9), actor: "Priya Nair", role: "gov", action: "Created pilot", entity: "Pilot", entityId: "pil-water" },
+  { id: "au-10", at: daysAgo(8), actor: "Priya Nair", role: "gov", action: "Signed pilot agreement", entity: "Pilot", entityId: "pil-water" },
+  { id: "au-11", at: daysAgo(7), actor: "TechNova Innovations", role: "startup", action: "Completed milestone 1", entity: "Pilot", entityId: "pil-water" },
+  { id: "au-12", at: daysAgo(6), actor: "Priya Nair", role: "gov", action: "Released payment ₹3,60,000", entity: "Milestone", entityId: "ms-water-1" },
+  { id: "au-13", at: daysAgo(3), actor: "TechNova Innovations", role: "startup", action: "Submitted evidence for milestone 2", entity: "Milestone", entityId: "ms-water-2" },
+  { id: "au-14", at: daysAgo(2), actor: "Priya Nair", role: "gov", action: "Published challenge", entity: "Challenge", entityId: "ch-waste-monitor" },
+  { id: "au-15", at: daysAgo(1), actor: "WasteSense IoT", role: "startup", action: "Submitted proposal", entity: "Proposal", entityId: "pr-wastesense-waste" },
+  { id: "au-16", at: daysAgo(1), actor: "Ravi Sharma", role: "admin", action: "Queued pilot for validation", entity: "Pilot", entityId: "pil-water" },
+];
+
+export const notifications: AppNotification[] = [
+  { id: "nt-1", forRole: "gov", text: "Milestone 2 evidence submitted by TechNova Innovations", at: daysAgo(3), read: false, href: "/dashboard/gov/pilots/pil-water" },
+  { id: "nt-2", forRole: "gov", text: "New proposal from CleanDrop Systems awaiting triage", at: daysAgo(2), read: false, href: "/dashboard/gov/proposals" },
+  { id: "nt-3", forRole: "gov", text: "Evaluation due in 2 days for AquaTech Solutions", at: daysAgo(1), read: false, href: "/dashboard/gov/proposals" },
+  { id: "nt-4", forRole: "gov", text: "Payment to AquaTech Solutions delayed by 3 days", at: daysAgo(4), read: true, href: "/dashboard/gov/pilots/pil-water" },
+  { id: "nt-5", forRole: "startup", text: "Milestone 1 payment of ₹3,60,000 released", at: daysAgo(6), read: true, href: "/dashboard/startup/pilots/pil-water" },
+  { id: "nt-6", forRole: "startup", text: "Milestone 2 evidence received — verification in progress", at: daysAgo(3), read: false, href: "/dashboard/startup/pilots/pil-water" },
+  { id: "nt-7", forRole: "startup", text: "New open challenge in your domain: Smart City Waste Monitoring", at: daysAgo(2), read: false, href: "/dashboard/startup" },
+  { id: "nt-8", forRole: "evaluator", text: "Two proposals queued for your assessment", at: daysAgo(2), read: false, href: "/dashboard/evaluator" },
+  { id: "nt-9", forRole: "evaluator", text: "Evaluation due in 2 days: HydroMetrics AI", at: daysAgo(1), read: false, href: "/dashboard/evaluator" },
+  { id: "nt-10", forRole: "admin", text: "Pilot 'Water Quality Sensor Network' completed — assign a validator", at: daysAgo(1), read: false, href: "/dashboard/admin" },
+  { id: "nt-11", forRole: "admin", text: "Two access requests pending review", at: daysAgo(2), read: false, href: "/dashboard/admin" },
+];

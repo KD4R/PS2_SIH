@@ -12,7 +12,13 @@ export type ExecutiveRole =
   | "VC Agent"
   | "Legal Agent"
   | "Research Agent"
-  | "Growth Agent";
+  | "Growth Agent"
+  | "Procurement Officer"
+  | "Technical Assessor"
+  | "Legal Advisor"
+  | "Finance Analyst"
+  | "Data & IP Reviewer"
+  | "Cyber & Risk Reviewer";
 
 export interface ExecutiveCardProps {
   name: string;
